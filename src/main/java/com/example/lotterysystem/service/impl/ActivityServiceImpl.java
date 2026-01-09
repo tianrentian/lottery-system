@@ -281,8 +281,8 @@ public class ActivityServiceImpl implements ActivityService {
                             .findFirst();
                     // PrizeDO不为空才执行
                     optionalprizeDO.ifPresent(prizeDO -> {
-                        prizeDTO.setName(prizeDTO.getName());
-                        prizeDTO.setImageUrl(prizeDTO.getImageUrl());
+                        prizeDTO.setName(prizeDO.getName());
+                        prizeDTO.setImageUrl(prizeDO.getImageUrl());
                         prizeDTO.setPrice(prizeDO.getPrice());
                         prizeDTO.setDescription(prizeDO.getDescription());
                     });

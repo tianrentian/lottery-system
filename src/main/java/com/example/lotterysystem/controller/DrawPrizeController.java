@@ -33,6 +33,7 @@ public class DrawPrizeController {
             @Validated @RequestBody DrawPrizeParam param) {
         logger.info("drawPrize DrawPrizeParam:{}", param);
         // service
+        drawPrizeService.drawPrize(param);
         return CommonResult.success(true);
     }
 

@@ -2,6 +2,8 @@ package com.example.lotterysystem.dao.dateobject;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
 public class Encrypt {
     private String value;

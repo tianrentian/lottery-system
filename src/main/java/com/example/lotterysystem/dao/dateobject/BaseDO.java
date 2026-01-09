@@ -3,6 +3,7 @@ package com.example.lotterysystem.dao.dateobject;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @Data
 public class BaseDO implements Serializable {
@@ -14,12 +15,12 @@ public class BaseDO implements Serializable {
     /**
      * 创建时间
      */
-    private Data gmtCreate;
+    private Date gmtCreate;
 
     /**
      * 修改时间
      */
-    private Data getModified;
+    private Date getModified;
 
 
 }
