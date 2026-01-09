@@ -172,12 +172,13 @@
 
       // 发送AJAX请求
       $.ajax({
-          url: '',
-          type: '',
-          data: dataToSend, // 将分页参数作为请求数据发送
-          headers: {
-              // jwt
-          },
+          url: '/prize/find-list',
+           type: 'GET',
+           data: dataToSend, // 将分页参数作为请求数据发送
+           headers: {
+               // jwt
+               "user_token": userToken
+           },
           dataType: 'json', // 期望从服务器接收的数据类型是JSON
           success: function(result) {
             if (result.code != 200) {

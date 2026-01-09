@@ -114,10 +114,11 @@
 
         // 发送AJAX请求
         $.ajax({
-            url: '',
-            type: '',
-            headers: {
+            url: '/base-user/find-list',
+            type: 'GET',
+            headers: {  
                 // jwt
+                "user_token":userToken
             },
             success: function(result) {
                 if (result.code != 200) {
@@ -129,12 +130,15 @@
                     userList.empty();
                     users.forEach(function(user) {
                         userList.append('<tr> ' +
-                        '<td>' +  + '</td>' +
+                        '<td>' + user.userId + '</td>' +
+                        '<td>' + user.userName + '</td>' +
+                        '<td>' + user.identity + '</td>' +
                         '</tr>');
                     });
                 } // else end
             },
             error: function(err){
+                // jwt令牌解析失败
                 console.log(err);
                 if(err!=null && err.status==401){
                     alert("用户未登录, 即将跳转到登录页!");

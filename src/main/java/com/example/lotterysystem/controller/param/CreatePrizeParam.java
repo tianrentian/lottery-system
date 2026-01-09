@@ -1,2 +1,27 @@
-package com.example.lotterysystem.controller.param;public class createPrizeParam {
+package com.example.lotterysystem.controller.param;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+import java.math.BigDecimal;
+
+@Data
+public class CreatePrizeParam {
+
+    /**
+     * 奖品名
+     */
+    @NotBlank(message = "奖品名不能为空！")
+    private String prizeName;
+    /**
+     * 描述
+     */
+    private String description;
+    /**
+     * 价格
+     */
+    @NotNull(message = "奖品价格不能为空！")
+    private BigDecimal price;
+
 }

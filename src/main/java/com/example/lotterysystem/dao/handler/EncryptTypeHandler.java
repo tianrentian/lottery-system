@@ -98,6 +98,6 @@ public class EncryptTypeHandler extends BaseTypeHandler<Encrypt> {
         if (!StringUtils.hasText(str)) {
             return null;
         }
-        return new Encrypt(SecureUtil.aes(KEY).decrypt(str));
+        return new Encrypt(SecureUtil.aes(KEY).decryptStr(str));
     }
 }

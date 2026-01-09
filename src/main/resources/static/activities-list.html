@@ -135,12 +135,13 @@
       };
       // 发送AJAX请求
       $.ajax({
-          url: '',
-          type: '',
+          url: '/activity/find-list',
+          type: 'GET',
           data: dataToSend, // 将分页参数作为请求数据发送
           dataType: 'json',
           headers: {
             // jwt
+            "user_token":userToken
           },
           success: function(result) {
             if (result.code != 200) {

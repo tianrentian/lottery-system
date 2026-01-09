@@ -209,16 +209,20 @@
 <script
         src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
+  // 活动新建完成之后，自动跳转到活动列表页
+  // 创建普通员工后，自动跳转到人员列表页
   // 监听子message事件,实现子页面向父页面传递
   window.addEventListener('message', function(e){
     console.log('子页面传递的数据', e.data)
     if(e.data && e.data.from){
+      // from : activities-list.html
+      // id ： activitiesList
       var pages = e.data.from+'?param=' +  new Date().getTime()
       $('#contentFrame').attr('src', pages);
       let id = e.data.id
       // 移除所有链接的激活样式
       $('ul.nav .nav-link').removeClass('active');
-      // 为当前点击的链接添加激活样式
+      // 为当前子页面发送的链接添加激活样式
       $(id).addClass('active');
       $(id).parent().parent('.sub-category').prev().addClass('active');
     }
