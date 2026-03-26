@@ -17,6 +17,8 @@ import com.example.lotterysystem.service.enums.ActivityPrizeStatusEnum;
 import com.example.lotterysystem.service.enums.ActivityPrizeTiersEnum;
 import com.example.lotterysystem.service.enums.ActivityStatusEnum;
 import com.example.lotterysystem.service.enums.ActivityUserStatusEnum;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -29,6 +31,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.example.lotterysystem.common.config.DirectRabbitConfig.QUEUE_NAME;
@@ -38,6 +41,21 @@ import static com.example.lotterysystem.common.config.DirectRabbitConfig.QUEUE_N
 public class MqReceiver {
 
     private static final Logger logger = LoggerFactory.getLogger(MqReceiver.class);
+
+    /**
+     * 分布式锁 key 前缀，锁粒度：活动 + 奖品
+     */
+    private static final String DRAW_LOCK_PREFIX = "DRAW_LOCK:";
+
+    /**
+     * 获取锁的最大等待时间（秒）
+     */
+    private static final long LOCK_WAIT_TIME = 5;
+
+    /**
+     * 持有锁的最大时间（秒），超时自动释放，防止死锁
+     */
+    private static final long LOCK_LEASE_TIME = 30;
 
     @Autowired
     private DrawPrizeService drawPrizeService;
@@ -59,6 +77,9 @@ public class MqReceiver {
     @Autowired
     private WinningRecordMapper winningRecordMapper;
 
+    @Autowired
+    private RedissonClient redissonClient;
+
     @RabbitHandler
     public void process(Map<String, String> message) throws Exception {
         // 成功接收到队列中的消息
@@ -66,9 +87,21 @@ public class MqReceiver {
                 JacksonUtil.writeValueAsString(message));
         String paramString = message.get("messageData");
         DrawPrizeParam param = JacksonUtil.readValue(paramString, DrawPrizeParam.class);
-        // 处理抽奖的流程
 
+        // 构造分布式锁 key，锁粒度：活动ID + 奖品ID
+        // 保证多实例部署时，同一活动的同一奖品只能被一个消费者处理
+        String lockKey = DRAW_LOCK_PREFIX + param.getActivityId() + ":" + param.getPrizeId();
+        RLock lock = redissonClient.getLock(lockKey);
+
+        boolean acquired = false;
         try {
+            // 尝试获取锁：最多等待5秒，持有锁最多30秒
+            acquired = lock.tryLock(LOCK_WAIT_TIME, LOCK_LEASE_TIME, TimeUnit.SECONDS);
+            if (!acquired) {
+                logger.warn("获取分布式锁失败，跳过本次抽奖处理。lockKey:{}", lockKey);
+                return;
+            }
+            logger.info("成功获取分布式锁，开始处理抽奖。lockKey:{}", lockKey);
 
             // 校验抽奖请求是否有效
             // 1、有可能前端发起两个一样的抽奖请求，对于param来说也是一样的两个请求
@@ -103,6 +136,12 @@ public class MqReceiver {
             rollback(param);
             // 抛出异常
             throw e;
+        } finally {
+            // 释放锁：只有当前线程持有锁时才释放，避免误释放其他线程的锁
+            if (acquired && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+                logger.info("分布式锁已释放。lockKey:{}", lockKey);
+            }
         }
 
     }
