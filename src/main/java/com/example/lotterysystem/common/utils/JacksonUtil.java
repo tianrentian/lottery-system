@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.json.JsonParseException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class JacksonUtil {
@@ -86,4 +87,21 @@ public class JacksonUtil {
         });
     }
 
+    /**
+     * 反序列化 Map
+     *
+     * @param content JSON字符串
+     * @param keyClass Map的key类型
+     * @param valueClass Map的value类型
+     * @return 反序列化后的Map
+     * @param <K> key类型
+     * @param <V> value类型
+     */
+    public static <K, V> Map<K, V> readMapValue(String content, Class<K> keyClass, Class<V> valueClass) {
+        JavaType javaType = JacksonUtil.getObjectMapper().getTypeFactory()
+                .constructParametricType(Map.class, keyClass, valueClass);
+        return JacksonUtil.tryParse(() -> {
+            return JacksonUtil.getObjectMapper().readValue(content, javaType);
+        });
+    }
 }
