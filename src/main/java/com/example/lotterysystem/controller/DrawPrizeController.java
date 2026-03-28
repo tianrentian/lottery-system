@@ -31,8 +31,9 @@ public class DrawPrizeController {
     @RequestMapping("/draw-prize")
     public CommonResult<Boolean> drawPrize(
             @Validated @RequestBody DrawPrizeParam param) {
-        logger.info("drawPrize DrawPrizeParam:{}", param);
-        // service
+        logger.info("drawPrize 触发后端抽奖，activityId={}，prizeId={}",
+                param.getActivityId(), param.getPrizeId());
+        // 后端独立随机抽取中奖者，结果由 Service 层决定，前端不再传入 winnerList
         drawPrizeService.drawPrize(param);
         return CommonResult.success(true);
     }

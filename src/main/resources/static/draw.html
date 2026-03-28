@@ -359,22 +359,13 @@
         nextButton.textContent = text;
     }
 
-    function saveLuck() {
-        var data = steps[step]
-
-        var luckUserList = []
-        for (var i = 0; i < data.list.length; ++i) {
-            luckUserList.push({
-                userId: data.list[i].userId,
-                userName: data.list[i].userName
-            })
-        }
-
+    // 触发后端抽奖接口，后端独立随机抽取中奖者，前端不再传入 winnerList
+    function saveLuck(data, callback) {
         var drawPrizesData = {
             activityId: activityId,
             prizeId: data.prizeId,
-            winningTime: new Date(),
-            winnerList: luckUserList
+            winningTime: new Date()
+            // winnerList 由后端随机抽取，前端不再传入
         };
 
         // 发送AJAX请求
@@ -390,14 +381,16 @@
             success: function(result) {
                 if (result.code != 200) {
                     alert("抽奖失败！" + result.msg);
+                } else {
+                    // 后端抽奖成功，执行回调（展示后端实际抽取的中奖者）
+                    if (callback) callback();
                 }
             },
-            error:function(err){
+            error: function(err) {
                 console.log(err);
-                if(err!=null && err.status==401){
+                if (err != null && err.status == 401) {
                     alert("用户未登录, 即将跳转到登录页!");
-                    // 已经被拦截器拦截了, 未登录
-                    location.href ="/blogin.html";
+                    location.href = "/blogin.html";
                 }
             }
         });
@@ -421,17 +414,16 @@
                 changeNextButtonText('已抽完，下一步')
             }
         } else if (state == 'showBlink') {
-            // 从names中移除幸运儿，并将幸运儿存放起来
-            var luck = names.splice(0, data.prizeAmount)
-            // 只存放当前奖项的人员信息，下次抽奖会被覆盖
-            data.list = luck.map(x => x)
-            console.log("data.list:" + JSON.stringify(data.list))
-            // 调用后端抽奖接口，保存中奖信息
-            saveLuck()
+            // 后端独立抽取中奖者，前端不再决定谁中奖
+            // data.list 置空，showList 内会调用 showWinnerListWithPrize 从后端获取实际中奖者
+            data.list = []
             data.valid = false
             state = 'showList'
-            showList(data)
-            changeNextButtonText('已抽完，下一步')
+            // 触发后端抽奖，成功后再展示（从后端获取实际中奖者）
+            saveLuck(data, function() {
+                showList(data)
+                changeNextButtonText('已抽完，下一步')
+            })
         } else if (state == 'showList') {
             if (step < (steps.length - 1)) {
                 ++step

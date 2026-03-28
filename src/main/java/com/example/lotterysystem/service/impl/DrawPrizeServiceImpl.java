@@ -42,6 +42,8 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
     @Autowired
     private ActivityPrizeMapper activityPrizeMapper;
     @Autowired
+    private ActivityUserMapper activityUserMapper;
+    @Autowired
     private UserMapper userMapper;
     @Autowired
     private PrizeMapper prizeMapper;
@@ -53,6 +55,49 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
     @Override
     public void drawPrize(DrawPrizeParam param) {
 
+        // 后端独立随机抽取中奖者，前端不再传入 winnerList，防止前端篡改中奖结果
+
+        // 1. 查询该奖品的数量（需要抽取的中奖人数）
+        ActivityPrizeDO activityPrizeDO = activityPrizeMapper.selectByAPId(
+                param.getActivityId(), param.getPrizeId());
+        if (activityPrizeDO == null) {
+            throw new ServiceException(ServiceErrorCodeConstants.ACTIVITY_OR_PRIZE_IS_EMPTY);
+        }
+        int prizeAmount = activityPrizeDO.getPrizeAmount().intValue();
+
+        // 2. 查询活动的全量参与者名单（状态为 INIT 的，即尚未中奖的参与者）
+        List<ActivityUserDO> activityUserList = activityUserMapper.selectByActivityId(param.getActivityId());
+        if (CollectionUtils.isEmpty(activityUserList)) {
+            throw new ServiceException(ServiceErrorCodeConstants.ACTIVITY_USER_ERROR);
+        }
+
+        // 3. 过滤掉已中奖（COMPLETED）的参与者，只从状态为 INIT 的人中抽取
+        List<ActivityUserDO> eligibleUsers = activityUserList.stream()
+                .filter(u -> "INIT".equalsIgnoreCase(u.getStatus()))
+                .collect(Collectors.toList());
+        if (eligibleUsers.size() < prizeAmount) {
+            throw new ServiceException(ServiceErrorCodeConstants.USER_PRIZE_AMOUNT_EROOR);
+        }
+
+        // 4. 使用 SecureRandom 打乱参与者顺序，取前 prizeAmount 个作为中奖者
+        // SecureRandom 基于操作系统熵源，替代默认线性同余伪随机，消除随机序列可预测性
+        Collections.shuffle(eligibleUsers, new java.security.SecureRandom());
+        List<DrawPrizeParam.Winner> winnerList = eligibleUsers.subList(0, prizeAmount)
+                .stream()
+                .map(user -> {
+                    DrawPrizeParam.Winner winner = new DrawPrizeParam.Winner();
+                    winner.setUserId(user.getUserId());
+                    winner.setUserName(user.getUserName());
+                    return winner;
+                })
+                .collect(Collectors.toList());
+
+        // 5. 将后端抽取的中奖者填充到 param 中
+        param.setWinnerList(winnerList);
+        logger.info("后端随机抽取中奖者完成，activityId={}，prizeId={}，中奖人数={}",
+                param.getActivityId(), param.getPrizeId(), winnerList.size());
+
+        // 6. 发送 MQ，后续通知/落库逻辑完全不变
         Map<String, String> map = new HashMap<>();
         map.put("messageId", String.valueOf(UUID.randomUUID()));
         map.put("messageData", JacksonUtil.writeValueAsString(param));
@@ -95,13 +140,7 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
             return false;
         }
 
-        // 中奖者人数是否和设置奖品数量一致 3 2
-        if (activityPrizeDO.getPrizeAmount() != param.getWinnerList().size()) {
-            // throw new ServiceException(ServiceErrorCodeConstants.WINNER_PRIZE_AMOUNT_ERROR);
-            logger.info("校验抽奖请求失败！失败原因：{}",
-                    ServiceErrorCodeConstants.WINNER_PRIZE_AMOUNT_ERROR.getMsg());
-            return false;
-        }
+        // 注：中奖者人数校验已在 drawPrize() 内后端抽取时保证，此处无需重复校验
         return true;
     }
 

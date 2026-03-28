@@ -32,3 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 .mvn/
+
+### AI Agent ###
+.agent/
+.agents/
+_agent/
+_agents/
