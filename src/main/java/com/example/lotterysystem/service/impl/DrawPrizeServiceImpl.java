@@ -15,6 +15,8 @@ import com.example.lotterysystem.service.enums.ActivityPrizeTiersEnum;
 import com.example.lotterysystem.service.enums.ActivityStatusEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,9 @@ import static com.example.lotterysystem.common.config.DirectRabbitConfig.ROUTING
 public class DrawPrizeServiceImpl implements DrawPrizeService {
 
     private static final Logger logger = LoggerFactory.getLogger(DrawPrizeServiceImpl.class);
+
+    /** 活动级分布式锁前缀：保证同一活动的并发抽奖请求在 API 入口串行化，防止并发读到相同候选人名单 */
+    private static final String DRAW_LOCK_ACTIVITY_PREFIX = "DRAW_LOCK_ACTIVITY:";
 
     private final  String WINNING_RECORDS_PREFIX = "WINNING_RECORDS_";
     private final Long WINNING_RECORDS_TIMEOUT = 60 * 60 * 24 * 2L;
@@ -52,58 +57,92 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
 
     @Autowired
     private RedisUtil redisUtil;
+
+    @Autowired
+    private RedissonClient redissonClient;
+
     @Override
     public void drawPrize(DrawPrizeParam param) {
 
-        // 后端独立随机抽取中奖者，前端不再传入 winnerList，防止前端篡改中奖结果
-
-        // 1. 查询该奖品的数量（需要抽取的中奖人数）
-        ActivityPrizeDO activityPrizeDO = activityPrizeMapper.selectByAPId(
-                param.getActivityId(), param.getPrizeId());
-        if (activityPrizeDO == null) {
-            throw new ServiceException(ServiceErrorCodeConstants.ACTIVITY_OR_PRIZE_IS_EMPTY);
+        // ── 活动级分布式锁（粗粒度）──────────────────────────────────────────────
+        // 设计说明：
+        //   同一活动下存在多个奖品，若并发触发不同奖品的抽奖请求，
+        //   各请求会读取同一份 INIT 状态候选人名单，可能造成同一人被不同奖品同时选中。
+        //   因此在 API 入口处以「活动维度」加锁，保证同一活动的所有抽奖请求串行执行。
+        //   MqReceiver 中的「奖品级细粒度锁」不受影响，仍负责防止 MQ 重复消费（幂等保障）。
+        String activityLockKey = DRAW_LOCK_ACTIVITY_PREFIX + param.getActivityId();
+        RLock activityLock = redissonClient.getLock(activityLockKey);
+        boolean acquired;
+        try {
+            // 非阻塞：等待最多 3 秒，若仍无法获锁则说明有其他奖项正在抽取，直接拒绝本次请求
+            acquired = activityLock.tryLock(3, 15, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ServiceException(ServiceErrorCodeConstants.DRAW_PRIZE_IS_PROCESSING);
         }
-        int prizeAmount = activityPrizeDO.getPrizeAmount().intValue();
-
-        // 2. 查询活动的全量参与者名单（状态为 INIT 的，即尚未中奖的参与者）
-        List<ActivityUserDO> activityUserList = activityUserMapper.selectByActivityId(param.getActivityId());
-        if (CollectionUtils.isEmpty(activityUserList)) {
-            throw new ServiceException(ServiceErrorCodeConstants.ACTIVITY_USER_ERROR);
-        }
-
-        // 3. 过滤掉已中奖（COMPLETED）的参与者，只从状态为 INIT 的人中抽取
-        List<ActivityUserDO> eligibleUsers = activityUserList.stream()
-                .filter(u -> "INIT".equalsIgnoreCase(u.getStatus()))
-                .collect(Collectors.toList());
-        if (eligibleUsers.size() < prizeAmount) {
-            throw new ServiceException(ServiceErrorCodeConstants.USER_PRIZE_AMOUNT_EROOR);
+        if (!acquired) {
+            logger.warn("获取活动级抽奖锁失败，活动下有其他奖品正在抽取中，activityId={}", param.getActivityId());
+            throw new ServiceException(ServiceErrorCodeConstants.DRAW_PRIZE_IS_PROCESSING);
         }
 
-        // 4. 使用 SecureRandom 打乱参与者顺序，取前 prizeAmount 个作为中奖者
-        // SecureRandom 基于操作系统熵源，替代默认线性同余伪随机，消除随机序列可预测性
-        Collections.shuffle(eligibleUsers, new java.security.SecureRandom());
-        List<DrawPrizeParam.Winner> winnerList = eligibleUsers.subList(0, prizeAmount)
-                .stream()
-                .map(user -> {
-                    DrawPrizeParam.Winner winner = new DrawPrizeParam.Winner();
-                    winner.setUserId(user.getUserId());
-                    winner.setUserName(user.getUserName());
-                    return winner;
-                })
-                .collect(Collectors.toList());
+        try {
+            // 后端独立随机抽取中奖者，前端不再传入 winnerList，防止前端篡改中奖结果
 
-        // 5. 将后端抽取的中奖者填充到 param 中
-        param.setWinnerList(winnerList);
-        logger.info("后端随机抽取中奖者完成，activityId={}，prizeId={}，中奖人数={}",
-                param.getActivityId(), param.getPrizeId(), winnerList.size());
+            // 1. 查询该奖品的数量（需要抽取的中奖人数）
+            ActivityPrizeDO activityPrizeDO = activityPrizeMapper.selectByAPId(
+                    param.getActivityId(), param.getPrizeId());
+            if (activityPrizeDO == null) {
+                throw new ServiceException(ServiceErrorCodeConstants.ACTIVITY_OR_PRIZE_IS_EMPTY);
+            }
+            int prizeAmount = activityPrizeDO.getPrizeAmount().intValue();
 
-        // 6. 发送 MQ，后续通知/落库逻辑完全不变
-        Map<String, String> map = new HashMap<>();
-        map.put("messageId", String.valueOf(UUID.randomUUID()));
-        map.put("messageData", JacksonUtil.writeValueAsString(param));
-        // 发消息 交换机、绑定的key、消息体
-        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING, map);
-        logger.info("mq消息发送成功：map={}", JacksonUtil.writeValueAsString(map));
+            // 2. 查询活动的全量参与者名单（状态为 INIT 的，即尚未中奖的参与者）
+            List<ActivityUserDO> activityUserList = activityUserMapper.selectByActivityId(param.getActivityId());
+            if (CollectionUtils.isEmpty(activityUserList)) {
+                throw new ServiceException(ServiceErrorCodeConstants.ACTIVITY_USER_ERROR);
+            }
+
+            // 3. 过滤掉已中奖（COMPLETED）的参与者，只从状态为 INIT 的人中抽取
+            List<ActivityUserDO> eligibleUsers = activityUserList.stream()
+                    .filter(u -> "INIT".equalsIgnoreCase(u.getStatus()))
+                    .collect(Collectors.toList());
+            if (eligibleUsers.size() < prizeAmount) {
+                throw new ServiceException(ServiceErrorCodeConstants.USER_PRIZE_AMOUNT_EROOR);
+            }
+
+            // 4. 使用 SecureRandom 打乱参与者顺序，取前 prizeAmount 个作为中奖者
+            // SecureRandom 基于操作系统熵源，替代默认线性同余伪随机，消除随机序列可预测性
+            Collections.shuffle(eligibleUsers, new java.security.SecureRandom());
+            List<DrawPrizeParam.Winner> winnerList = eligibleUsers.subList(0, prizeAmount)
+                    .stream()
+                    .map(user -> {
+                        DrawPrizeParam.Winner winner = new DrawPrizeParam.Winner();
+                        winner.setUserId(user.getUserId());
+                        winner.setUserName(user.getUserName());
+                        return winner;
+                    })
+                    .collect(Collectors.toList());
+
+            // 5. 将后端抽取的中奖者填充到 param 中
+            param.setWinnerList(winnerList);
+            logger.info("后端随机抽取中奖者完成，activityId={}，prizeId={}，中奖人数={}",
+                    param.getActivityId(), param.getPrizeId(), winnerList.size());
+
+            // 6. 发送 MQ，后续通知/落库逻辑完全不变
+            Map<String, String> map = new HashMap<>();
+            map.put("messageId", String.valueOf(UUID.randomUUID()));
+            map.put("messageData", JacksonUtil.writeValueAsString(param));
+            // 发消息 交换机、绑定的key、消息体
+            rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING, map);
+            logger.info("mq消息发送成功：map={}", JacksonUtil.writeValueAsString(map));
+
+        } finally {
+            // 确保锁一定会被释放，防止死锁
+            if (activityLock.isHeldByCurrentThread()) {
+                activityLock.unlock();
+                logger.info("活动级抽奖锁已释放，activityId={}", param.getActivityId());
+            }
+        }
     }
 
     @Override

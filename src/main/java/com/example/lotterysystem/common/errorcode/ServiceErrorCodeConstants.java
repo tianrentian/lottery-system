@@ -34,6 +34,7 @@ public interface ServiceErrorCodeConstants {
     ErrorCode ACTIVITY_COMPLETED = new ErrorCode(401, "抽奖活动已完成，无法抽奖");
     ErrorCode ACTIVITY_PRIZE_COMPLETED = new ErrorCode(402, "当前奖品已被抽取，无法抽奖");
     ErrorCode WINNER_PRIZE_AMOUNT_ERROR = new ErrorCode(403, "中奖人数与奖品数量不一致，无法抽奖");
+    ErrorCode DRAW_PRIZE_IS_PROCESSING = new ErrorCode(404, "抽奖正在进行中，请稍后重试");
 
     // ------ 图片错误码 --------
     ErrorCode PIC_UPLOAD_ERROR = new ErrorCode(500, "图片上传失败");
