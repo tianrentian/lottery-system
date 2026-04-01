@@ -12,6 +12,9 @@ public class DirectRabbitConfig {
     public static final String EXCHANGE_NAME = "DirectExchange";
     public static final String ROUTING = "DirectRouting";
 
+    public static final String QUEUE_AI_NOTIFICATION = "AiNotificationQueue";
+    public static final String ROUTING_AI = "AiNotificationRouting";
+
     public static final String DLX_QUEUE_NAME = "DlxDirectQueue";
     public static final String DLX_EXCHANGE_NAME = "DlxDirectExchange";
     public static final String DLX_ROUTING = "DlxDirectRouting";
@@ -95,6 +98,21 @@ public class DirectRabbitConfig {
         return BindingBuilder.bind(dlxQueue())
                 .to(dlxExchange())
                 .with(DLX_ROUTING);
+    }
+
+    /**
+     * 专属 AI 通知削峰队列
+     */
+    @Bean
+    public Queue aiNotificationQueue() {
+        return new Queue(QUEUE_AI_NOTIFICATION, true);
+    }
+
+    @Bean
+    Binding bindingAiNotification() {
+        return BindingBuilder.bind(aiNotificationQueue())
+                .to(directExchange())
+                .with(ROUTING_AI);
     }
 
 

@@ -3,8 +3,6 @@ package com.example.lotterysystem.service.mq;
 import cn.hutool.core.date.DateUtil;
 import com.example.lotterysystem.common.exception.ServiceException;
 import com.example.lotterysystem.common.utils.JacksonUtil;
-import com.example.lotterysystem.common.utils.MailUtil;
-import com.example.lotterysystem.common.utils.SMSUtil;
 import com.example.lotterysystem.controller.param.DrawPrizeParam;
 import com.example.lotterysystem.dao.dateobject.ActivityPrizeDO;
 import com.example.lotterysystem.dao.dateobject.WinningRecordDO;
@@ -14,7 +12,6 @@ import com.example.lotterysystem.service.DrawPrizeService;
 import com.example.lotterysystem.service.activitystatus.ActivityStatusManager;
 import com.example.lotterysystem.service.dto.ConvertActivityStatusDTO;
 import com.example.lotterysystem.service.enums.ActivityPrizeStatusEnum;
-import com.example.lotterysystem.service.enums.ActivityPrizeTiersEnum;
 import com.example.lotterysystem.service.enums.ActivityStatusEnum;
 import com.example.lotterysystem.service.enums.ActivityUserStatusEnum;
 import org.redisson.api.RLock;
@@ -24,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -63,15 +59,6 @@ public class MqReceiver {
     private ActivityStatusManager activityStatusManager;
 
     @Autowired
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
-
-    @Autowired
-    private MailUtil mailUtil;
-
-    @Autowired
-    private SMSUtil smsUtil;
-
-    @Autowired
     private ActivityPrizeMapper activityPrizeMapper;
 
     @Autowired
@@ -79,6 +66,9 @@ public class MqReceiver {
 
     @Autowired
     private RedissonClient redissonClient;
+
+    @Autowired
+    private org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
 
     @RabbitHandler
     public void process(Map<String, String> message) throws Exception {
@@ -119,9 +109,17 @@ public class MqReceiver {
             List<WinningRecordDO> winningRecordDOList =
                     drawPrizeService.saveWinnerRecords(param);
 
-            // 通知中奖者（邮箱、短信）
-            // 抽奖之后的后续流程，异步（并发）处理
-            syncExecute(winningRecordDOList);
+            // 架构 2.0 升级：斩尾！放弃原来的 JVM 内线程池同步阻塞调用，将获奖记录抛送至新的专用防抖缓冲通道。
+            if (!CollectionUtils.isEmpty(winningRecordDOList)) {
+                for (WinningRecordDO recordDO : winningRecordDOList) {
+                    Map<String, String> aiMsg = new HashMap<>();
+                    // 将单个中奖人员的全部信息发送出去，下游并发分批提货不受牵制
+                    aiMsg.put("recordData", JacksonUtil.writeValueAsString(recordDO));
+                    rabbitTemplate.convertAndSend(com.example.lotterysystem.common.config.DirectRabbitConfig.EXCHANGE_NAME, 
+                                                  com.example.lotterysystem.common.config.DirectRabbitConfig.ROUTING_AI, 
+                                                  aiMsg);
+                }
+            }
 
         } catch (ServiceException e) {
             logger.error("处理 MQ 消息异常！{}:{}", e.getCode(), e.getMessage(), e);
@@ -223,64 +221,7 @@ public class MqReceiver {
                 .equalsIgnoreCase(ActivityPrizeStatusEnum.COMPLETED.name());
     }
 
-    /**
-     * 并发处理抽奖后续流程
-     *
-     * @param winningRecordDOList
-     */
-    private void syncExecute(List<WinningRecordDO> winningRecordDOList) {
-        // 通过线程池 threadPoolTaskExecutor
-        // 可扩展：加入策略模式或者其他设计模式来完成后续的异步操作
-        // 短信通知
-        threadPoolTaskExecutor.execute(()-> {
-            try {
-                sendMessage(winningRecordDOList);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-        // 邮件通知
-        threadPoolTaskExecutor.execute(()->sendMail(winningRecordDOList));
-    }
-
-    /**
-     * 发邮件
-     *
-     * @param winningRecordDOList
-     */
-    private void sendMail(List<WinningRecordDO> winningRecordDOList) {
-        if (CollectionUtils.isEmpty(winningRecordDOList)) {
-            logger.info("中奖列表为空，不用发邮件！");
-            return;
-        }
-        for (WinningRecordDO winningRecordDO : winningRecordDOList) {
-            // Hi,xxx。恭喜你在抽奖活动活动中获得二等奖:吹风机。获奖奖时间为18:18:44,请尽快领取您的奖励
-            String context = "Hi，" + winningRecordDO.getWinnerName() + "。恭喜你在"
-                    + winningRecordDO.getActivityName() + "活动中获得"
-                    + ActivityPrizeTiersEnum.forName(winningRecordDO.getPrizeTier()).getMessage()
-                    + "：" + winningRecordDO.getPrizeName() + "。获奖时间为"
-                    + DateUtil.formatTime(winningRecordDO.getWinningTime()) + "，请尽快领 取您的奖励！";
-            mailUtil.sendSampleMail(winningRecordDO.getWinnerEmail(),
-                    "中奖通知", context);
-        }
-    }
-
-    /**
-     * 发短信
-     *
-     * @param winningRecordDOList
-     */
-    private void sendMessage(List<WinningRecordDO> winningRecordDOList) throws Exception {
-        if (CollectionUtils.isEmpty(winningRecordDOList)) {
-            logger.info("中奖列表为空，不用发短信！");
-            return;
-        }
-        for (WinningRecordDO winningRecordDO : winningRecordDOList) {
-            smsUtil.sendMessage("100001",
-                    winningRecordDO.getWinnerPhoneNumber().getValue(),
-                    "{\"code\":\"##code##\",\"min\":\"5\"}");
-        }
-    }
+    // syncExecute, sendMail, sendMessage 已经随 2.0 架构升级全部下放入专用的 AiNotificationReceiver 中进行极限并发处理，故此段旧线程池阻塞代码彻底废弃。
 
     /**
      * 状态扭转

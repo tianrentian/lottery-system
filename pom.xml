@@ -121,7 +121,39 @@
 			<artifactId>redisson-spring-boot-starter</artifactId>
 			<version>3.27.0</version>
 		</dependency>
+
+		<!-- AI: LangChain4j Core & OpenAI Compatible Model (DeepSeek) -->
+		<dependency>
+			<groupId>dev.langchain4j</groupId>
+			<artifactId>langchain4j-spring-boot-starter</artifactId>
+			<version>0.33.0</version>
+		</dependency>
+		<dependency>
+			<groupId>dev.langchain4j</groupId>
+			<artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
+			<version>0.33.0</version>
+		</dependency>
+		<!-- 引入 Spring Retry 和 AOP -->
+		<dependency>
+			<groupId>org.springframework.retry</groupId>
+			<artifactId>spring-retry</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
 	</dependencies>
+
+	<!-- 强制锁定 okhttp3 版本，防止 langchain4j 与其他依赖的版本冲突 -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.squareup.okhttp3</groupId>
+				<artifactId>okhttp</artifactId>
+				<version>4.12.0</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>
