@@ -1,149 +1,217 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>注册页面</title>
-    <link rel="stylesheet"
-          href="https://cdn.staticfile.org/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="./css/base.css">
-    <script
-            src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script
-            src="https://cdn.bootcdn.net/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
-    <link rel="stylesheet"
-          href="https://cdn.staticfile.org/twitter-bootstrap/4.5.2/js/bootstrap.min.js">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #fff;
-            margin: 0;
-            padding: 0;
-        }
-        .register-container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 5px;
-        }
-        .register-container h2{
-            font-weight: 600;
-            font-size: 32px;
-            letter-spacing: 1px;
-            color: #000000;
-            line-height: 50px;
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        .show-password {
-            float: right;
-            cursor: pointer;
-            color: #008CBA;
-        }
+  <meta charset="UTF-8">
+  <title>注册 - 抽奖系统</title>
+  <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./css/base.css">
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+  <style>
+    body {
+      font-family: var(--font-body);
+      background-color: var(--color-bg);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* 点网格背景 */
+      background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
 
-    </style>
+    /* 注册卡片 */
+    .register-container {
+      max-width: 520px;
+      width: 100%;
+      margin: 32px 16px;
+      background-color: var(--color-card);
+      border: 2px solid var(--color-fg);
+      border-radius: var(--radius-lg);
+      box-shadow: 8px 8px 0px 0px var(--color-fg);
+      overflow: hidden;
+    }
+
+    /* 卡片顶部装饰带 */
+    .register-header {
+      background: linear-gradient(135deg, var(--color-accent), #7C3AED);
+      padding: 32px 36px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .register-header::before {
+      content: '';
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      top: -30px;
+      right: -20px;
+    }
+
+    .register-header::after {
+      content: '';
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(251, 191, 36, 0.3);
+      bottom: -15px;
+      left: 40px;
+    }
+
+    .register-container h2 {
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 28px;
+      color: #fff;
+      margin: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .register-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
+      margin-top: 4px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* 表单内容区 */
+    .register-body {
+      padding: 32px 36px 36px;
+    }
+
+    /* 显示密码链接 */
+    .show-password {
+      float: right;
+      cursor: pointer;
+      color: var(--color-accent);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* 提交按钮 */
+    .btn-submit {
+      margin-top: 8px;
+    }
+
+    /* 返回链接 */
+    .back-link {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--color-muted-fg);
+    }
+
+    .back-link a {
+      color: var(--color-accent);
+      font-weight: 700;
+    }
+  </style>
 </head>
 <body>
 <div class="register-container">
-    <h2>填写注册信息</h2>
+  <!-- 顶部装饰带 -->
+  <div class="register-header">
+    <h2>✨ 填写注册信息</h2>
+    <p class="register-sub">请填写以下信息完成注册</p>
+  </div>
+
+  <!-- 表单 -->
+  <div class="register-body">
     <form id="registerForm">
-        <div class="form-group">
-            <label for="name">姓名</label>
-            <input type="text" class="form-control" id="name"
-                   name="name" placeholder="请输入姓名" required>
-        </div>
-        <div class="form-group">
-            <label for="mail">邮箱</label>
-            <input type="email" class="form-control" id="mail"
-                   name="mail" placeholder="请输入邮箱" required>
-        </div>
-        <div class="form-group">
-            <label for="phoneNumber">手机号</label>
-            <input type="text" class="form-control" id="phoneNumber"
-                   name="phoneNumber" placeholder="请输入手机号" required>
-        </div>
-        <div class="form-group">
-            <label for="password">密码</label>
-            <input type="password" class="form-control" id="password"
-                   name="password" placeholder="请输入密码" required>
-        </div>
-        <button type="submit"
-                class="btn btn-primary btn-block">注册</button>
+      <div class="form-group">
+        <label for="name">姓名</label>
+        <input type="text" class="form-control" id="name" name="name" placeholder="请输入姓名" required>
+      </div>
+      <div class="form-group">
+        <label for="mail">邮箱</label>
+        <input type="email" class="form-control" id="mail" name="mail" placeholder="请输入邮箱" required>
+      </div>
+      <div class="form-group">
+        <label for="phoneNumber">手机号</label>
+        <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" placeholder="请输入手机号" required>
+      </div>
+      <div class="form-group">
+        <label for="password">
+          密码
+          <span class="show-password" onclick="togglePwd()">显示/隐藏</span>
+        </label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码（至少6位）" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-submit">完成注册</button>
     </form>
+    <div class="back-link">
+      已有账号？<a href="blogin.html">去登录</a>
+    </div>
+  </div>
 </div>
 
 <script>
-    // 获取链接参数
-    var params = new URLSearchParams(window.location.search);
-    var jumpList = params.get('jumpList');
-    var admin = params.get('admin');
+  var params = new URLSearchParams(window.location.search);
+  var jumpList = params.get('jumpList');
+  var admin = params.get('admin');
 
-    // 判断是否隐藏密码输入框
-    if(admin === 'false') {
-        // 隐藏密码输入框
-        $('#password').closest('div.form-group').css('display', 'none');
-    }
+  // 判断是否隐藏密码输入框
+  if (admin === 'false') {
+    $('#password').closest('div.form-group').css('display', 'none');
+  }
 
-    // 使用jQuery Validate插件来验证表单
-    $("#registerForm").validate({
-        rules: {
-            name: "required",
-            mail: {
-                required: true,
-                email: true
-            },
-            phoneNumber: "required",
-            password: {
-                required: true,
-                minlength: 6
+  // 显示/隐藏密码
+  function togglePwd() {
+    var input = document.getElementById('password');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+
+  // 表单验证
+  $('#registerForm').validate({
+    rules: {
+      name: 'required',
+      mail: { required: true, email: true },
+      phoneNumber: 'required',
+      password: { required: true, minlength: 6 }
+    },
+    messages: {
+      name: '请输入您的姓名',
+      mail: '请输入有效的邮箱地址',
+      phoneNumber: '请输入您的手机号',
+      password: { required: '请输入密码', minlength: '密码长度至少为6个字符' }
+    },
+    submitHandler: function(form) {
+      var formData = {
+        name: $('#name').val(),
+        mail: $('#mail').val(),
+        phoneNumber: $('#phoneNumber').val(),
+        password: $('#password').val(),
+        identity: (admin == null || admin === 'true') ? 'ADMIN' : 'NORMAL'
+      };
+      $.ajax({
+        url: '/register',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(result) {
+          if (result.code != 200) {
+            alert('注册失败！' + result.msg);
+          } else {
+            if (jumpList == 'true') {
+              window.parent.postMessage({ from: 'user-list.html', id: '#userList' }, '*');
+            } else {
+              alert('注册成功，去登录！');
+              location.assign('blogin.html');
             }
-        },
-        messages: {
-            name: "请输入您的姓名",
-            mail: "请输入有效的邮箱地址",
-            phoneNumber: "请输入您的手机号",
-            password: {
-                required: "请输入密码",
-                minlength: "密码长度至少为6个字符"
-            }
-        },
-        submitHandler: function(form) {
-            var formData = {
-                name: $('#name').val(),
-                mail: $('#mail').val(),
-                phoneNumber: $('#phoneNumber').val(),
-                password: $('#password').val(),
-                identity: (admin == null || admin === 'true') ? "ADMIN" : "NORMAL"
-            };
-
-            // 表单验证通过后，发送AJAX请求
-            $.ajax({
-                url: '/register',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(formData),
-                success: function(result) {
-                    if(result.code != 200) {
-                        alert("注册失败！" + result.msg);
-                    } else {
-                        if(jumpList =='true') {
-                            // 给父页面发消息，表示要跳转到人员列表页
-                            window.parent.postMessage(
-                                {
-                                    from:'user-list.html',
-                                    id:'#userList'
-                                }, '*'
-                            );
-                        } else {
-                            alert("注册成功，去登陆！");
-                            location.assign("blogin.html");
-                        }
-                    }
-                }
-            });
-            return false; // 阻止表单的默认提交行为
+          }
         }
-    });
+      });
+      return false;
+    }
+  });
 </script>
 </body>
 </html>

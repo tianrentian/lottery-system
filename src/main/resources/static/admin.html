@@ -1,172 +1,270 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>后台管理</title>
+  <title>后台管理 - 抽奖系统</title>
   <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="./css/base.css">
   <style>
-    .admin-page{
+    /* ================================
+       后台管理框架 - Playful Geometric
+       ================================ */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-body);
+    }
+
+    .admin-page {
       display: flex;
       flex-direction: column;
+      height: 100vh;
+      background-color: var(--color-bg);
     }
-    .admin-page .header-box{
-      height: 80px;
-      background-color: #fff;
+
+    /* --- 顶栏 --- */
+    .admin-page .header-box {
+      height: 72px;
+      background-color: var(--color-card);
       width: 100%;
       display: flex;
       align-items: center;
-      padding-left: 40px;
-      padding-right: 34px;
+      padding-left: 28px;
+      padding-right: 28px;
       box-sizing: border-box;
-      display: flex;
-      align-items: center;
       justify-content: space-between;
-    }
-    .header-box .user-box{
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-    }
-    .header-box .user-box img{
-      height: 22px;
-      width: 22px;
-    }
-    .header-box .black{
-      font-weight: 500;
-      font-size: 14px;
-      color: #222222;
-      padding-right: 20px;
+      border-bottom: 2px solid var(--color-fg);
       position: relative;
+      z-index: 10;
+      flex-shrink: 0;
     }
-    .header-box .black::after{
-      position: absolute;
-      content: '';
-      width: 1px;
-      height: 15px;
-      background: #A9ABB3;
-      right: -1px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-    .header-box .gray{
-      font-weight: 500;
-      font-size: 14px;
-      color: #A9ABB3;
-      margin-left: 20px;
+
+    /* LOGO 区域 */
+    .header-box .logo-box {
       display: flex;
       align-items: center;
-      cursor: pointer;
+      gap: 10px;
     }
-    .header-box .gray span{
-      display: block;
-      height: 22px;
-      line-height: 21px;
-      margin-left: 10px;
-    }
-    .admin-page .cont-box{
+
+    /* 替代 logo 图片：用纯 CSS 绘制几何 LOGO */
+    .header-box .logo-mark {
+      width: 36px;
+      height: 36px;
+      background: var(--color-accent);
+      border-radius: 10px;
+      border: 2px solid var(--color-fg);
+      box-shadow: 3px 3px 0px var(--color-fg);
       display: flex;
-      height: calc(100vh - 80px);
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .header-box .logo-mark span {
+      color: #fff;
+      font-size: 18px;
+      font-weight: 800;
+      font-family: var(--font-heading);
+      line-height: 1;
+    }
+
+    .header-box .logo-text {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--color-fg);
+      letter-spacing: -0.3px;
+    }
+
+    /* 用户区域 */
+    .header-box .user-box {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-box .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--color-fg);
+      background: transparent;
+      border: 2px solid var(--color-fg);
+      border-radius: var(--radius-full);
+      padding: 6px 14px;
+      cursor: pointer;
+      box-shadow: 3px 3px 0px var(--color-fg);
+      transition: all 0.25s var(--ease-bounce);
+      font-family: var(--font-body);
+    }
+
+    .header-box .logout-btn:hover {
+      background-color: var(--color-secondary);
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0px var(--color-fg);
+    }
+
+    /* --- 主体布局 --- */
+    .admin-page .cont-box {
+      display: flex;
+      flex: 1;
       overflow: hidden;
     }
+
+    /* --- 侧边栏（深色）--- */
     .admin-page .sidebar {
       width: 220px;
+      flex-shrink: 0;
+      height: 100%;
+      background-color: var(--color-fg); /* 深石板色 */
+      padding: 20px 12px;
       overflow-x: hidden;
-      height: calc(100vh - 80px);
-      background-color: #fff;
-      padding:  24px 10px;
-      position: relative; /* 添加相对定位，为activity-center-title的绝对定位提供参考 */
+      overflow-y: auto;
+      border-right: 0px;
     }
-    .admin-page .main-content {
-      flex: 1;
-      background-color: #fff;
+
+    /* 侧边栏分类标题 */
+    .sidebar-section-title {
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #475569;
+      padding: 8px 12px 4px;
+      margin-top: 8px;
     }
+
+    /* 导航项 */
     .admin-page .nav-link {
       display: flex;
-      padding: 10px;
-      height: 52px;
+      padding: 10px 14px;
+      height: 46px;
       text-decoration: none;
-      border-radius: 4px;
-      margin-bottom: 20px;
-      padding-left: 30px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 4px;
       align-items: center;
-      font-weight: 400;
+      font-weight: 600;
+      font-size: 14px;
+      color: #94A3B8; /* 浅灰色未激活 */
+      font-family: var(--font-body);
+      transition: all 0.2s var(--ease-bounce);
+      gap: 10px;
+    }
+
+    .admin-page .nav-link .nav-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 16px;
-      color: var(--gray-color);
+      flex-shrink: 0;
     }
-    .admin-page .nav-link img{
-      margin-right: 15px;
+
+    .admin-page .nav-link:hover {
+      background: rgba(139, 92, 246, 0.15);
+      color: #C4B5FD;
     }
-    .nav-link.active,.nav-link:hover {
-      width: 198px;
-      height: 52px;
-      background: var(--blue-color);
-      border-radius: 10px;
+
+    /* 一级菜单激活 */
+    .nav-link.active {
+      background: var(--color-accent) !important;
+      color: #fff !important;
+      box-shadow: 3px 3px 0px rgba(0,0,0,0.3);
     }
-    .nav-link.active,.nav-link:hover {
-      color: var(--white-color);
+
+    /* 二级子菜单 */
+    .sub-category {
+      margin-left: 0;
+      padding-left: 16px;
     }
-    .nav-link.active  .white-img,.nav-link:hover .white-img{
-      display: block !important;
+
+    .sub-category .nav-link {
+      height: 38px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748B;
+      padding-left: 28px;
+      position: relative;
     }
-    .nav-link.active .gray-img,.nav-link:hover .gray-img{
-      display: none;
+
+    /* 二级菜单左侧竖线 */
+    .sub-category .nav-link::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #475569;
+      transition: background-color 0.2s;
     }
-    .nav-link .white-img{
+
+    .sub-category .nav-link.active,
+    .sub-category .nav-link:hover {
+      background: rgba(139, 92, 246, 0.2);
+      color: #C4B5FD !important;
+      box-shadow: none;
+    }
+
+    .sub-category .nav-link.active::before,
+    .sub-category .nav-link:hover::before {
+      background-color: var(--color-accent);
+    }
+
+    /* 隐藏旧图标 img */
+    .nav-link img {
       display: none !important;
     }
-    .nav-link  .gray-img{
-      display: block ;
+
+    /* --- 内容区域 --- */
+    .admin-page .main-content {
+      flex: 1;
+      background-color: var(--color-bg);
+      overflow: hidden;
     }
-    .sub-category .nav-link{
-      width: 194px;
-      background-color: #fff;
-      padding-left: 43px;
-      color: var(--placeholder-color);
-    }
-    .sub-category .nav-link.active,.sub-category .nav-link:hover {
-      width: 198px;
-      background: #DCE8FF;
-      border-radius: 10px;
-      color: var(--blue-color);
-    }
-    .sub-category {
-      margin-left: 20px;
-    }
+
     .iframe-styles {
-      padding: 20px;
+      padding: 0;
       width: 100%;
-      height: calc(100vh - 80px);
+      height: 100%;
       box-sizing: border-box;
-      background-color: var(--bg-color);
+      background-color: var(--color-bg);
       border: none;
     }
   </style>
 </head>
 <body class="admin-page">
-<!-- 头部 -->
+
+<!-- 顶部导航栏 -->
 <div class="header-box">
-  <!-- logo -->
+  <!-- LOGO -->
   <div class="logo-box">
-    <img src="./pic/logo.png" alt srcset>
+    <div class="logo-mark"><span>🎲</span></div>
+    <span class="logo-text">抽奖系统</span>
   </div>
-  <!-- 用户信息 -->
+  <!-- 用户操作 -->
   <div class="user-box">
-    <div class="gray" onclick="logout()">
-      <img src="./pic/logout.svg" alt="" srcset="">
-      <span>退出</span>
-    </div>
+    <button class="logout-btn" onclick="logout()">
+      <span>⬡</span>
+      <span>退出登录</span>
+    </button>
   </div>
 </div>
+
 <div class="cont-box">
   <!-- 侧边栏 -->
   <div class="sidebar">
     <ul class="nav flex-column">
+      <!-- 活动管理 -->
       <li class="nav-item">
-        <div class="nav-link active huodong">
-          <img src="./pic/huodong.png" class="white-img"  alt="">
-          <img src="./pic/huodong-0.png" class="gray-img"  alt="">
+        <div class="nav-link active huodong" style="cursor:default;">
+          <span class="nav-icon">🎯</span>
           <span>活动管理</span>
         </div>
         <ul class="nav flex-column sub-category">
@@ -174,10 +272,10 @@
           <li><a class="nav-link" id="createActivity" data-desc="huodong" href="create-activity.html">新建抽奖活动</a></li>
         </ul>
       </li>
+      <!-- 奖品管理 -->
       <li class="nav-item">
-        <div class="nav-link jiangpin">
-          <img src="./pic/jiangpin.png" class="white-img" style="display: none;" alt="">
-          <img src="./pic/jiangpin-0.png" class="gray-img"  alt="">
+        <div class="nav-link jiangpin" style="cursor:default;">
+          <span class="nav-icon">🎁</span>
           <span>奖品管理</span>
         </div>
         <ul class="nav flex-column sub-category">
@@ -185,10 +283,10 @@
           <li><a class="nav-link" data-desc="jiangpin" href="create-prizes.html">创建奖品</a></li>
         </ul>
       </li>
+      <!-- 人员管理 -->
       <li class="nav-item">
-        <div class="nav-link renyuan">
-          <img src="./pic/renyuan.png" class="white-img" style="display: none;" alt="">
-          <img src="./pic/renyuan-0.png" class="gray-img"  alt="">
+        <div class="nav-link renyuan" style="cursor:default;">
+          <span class="nav-icon">👥</span>
           <span>人员管理</span>
         </div>
         <ul class="nav flex-column sub-category">
@@ -198,72 +296,53 @@
       </li>
     </ul>
   </div>
+
   <!-- 内容区域 -->
   <div class="main-content">
-    <!-- 内容将根据点击的导航项动态加载 -->
     <iframe id="contentFrame" src="activities-list.html" class="iframe-styles"></iframe>
   </div>
 </div>
 
-<!-- 引入jQuery和Bootstrap的JavaScript -->
-<script
-        src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
-  // 活动新建完成之后，自动跳转到活动列表页
-  // 创建普通员工后，自动跳转到人员列表页
-  // 监听子message事件,实现子页面向父页面传递
-  window.addEventListener('message', function(e){
-    console.log('子页面传递的数据', e.data)
-    if(e.data && e.data.from){
-      // from : activities-list.html
-      // id ： activitiesList
-      var pages = e.data.from+'?param=' +  new Date().getTime()
+  // 监听子页面 postMessage（活动/用户创建后跳转）
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.from) {
+      var pages = e.data.from + '?param=' + new Date().getTime();
       $('#contentFrame').attr('src', pages);
-      let id = e.data.id
-      // 移除所有链接的激活样式
+      var id = e.data.id;
       $('ul.nav .nav-link').removeClass('active');
-      // 为当前子页面发送的链接添加激活样式
       $(id).addClass('active');
       $(id).parent().parent('.sub-category').prev().addClass('active');
     }
   }, false);
 
-  // 导航点击事件处理
+  // 导航点击事件
   $('ul.nav a').on('click', function(event) {
-    // 阻止链接默认的导航行为，这样页面不会跳转到href属性指定的URL。
     event.preventDefault();
-    // 移除所有链接的激活样式
     $('ul.nav .nav-link').removeClass('active');
-    // 为当前点击的链接添加激活样式
     $(this).addClass('active');
-    // 选中二级菜单时默认选中对应的一级菜单
     $(this).parent().parent('.sub-category').prev().addClass('active');
-
-    // 生成一个随机参数（时间戳） 解决iframe缓存问题
     var randomParam = new Date().getTime();
-    // 获取当前点击的链接的data-desc属性值
     var dataDesc = $(this).data('desc');
     var page = '';
-    if (dataDesc === "renyuancreate") {
-      page = $(this).attr('href') + "?param=" + randomParam + "&jumpList=true&admin=false";
+    if (dataDesc === 'renyuancreate') {
+      page = $(this).attr('href') + '?param=' + randomParam + '&jumpList=true&admin=false';
     } else {
-      page = $(this).attr('href') + "?param=" + randomParam;
+      page = $(this).attr('href') + '?param=' + randomParam;
     }
     $('#contentFrame').attr('src', page);
   });
 
-  // 确保默认情况下第一个链接是激活状态
+  // 默认激活第一个子链接
   $(document).ready(function() {
-    // 选取页面中第一个<ul>元素下，具有class="nav"的<a>元素
-    // ul.nav 是侧边栏导航的类名
-    // active类 定义了导航项被激活或选中的状态
     $('ul.nav a:first').addClass('active');
   });
 
   // 退出登录
-  function logout(){
-    localStorage.removeItem("user_token")
-    location.href='/blogin.html'
+  function logout() {
+    localStorage.removeItem('user_token');
+    location.href = '/blogin.html';
   }
 </script>
 </body>

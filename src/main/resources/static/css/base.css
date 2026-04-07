@@ -1,95 +1,220 @@
+/* ================================
+   Playful Geometric 设计令牌
+   ================================ */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
 :root {
-  --blue-color: #4C8DFB;
-  --jjext-color-brand: var(--blue-color) !important;
-  --jjext-color-hover: var(--blue-color) !important;
-  --jjext-color-dropdown-text: var(--blue-color) !important;
-  --jjext-color-navbar-icon: var(--blue-color) !important;
-  --jjext-color-layout-title-active: var(--blue-color) !important;
-  --jjext-color-font-brand1-normal: var(--blue-color) !important;
-  --white-color: #fff;
-  --border-radius: 8px;
-  --baby-blue: #C6DDFF;
-  --hover-blue: #007bff;
-  --red-color: #E52822;
-  --black-color: #000000;
-  --placeholder-color: #999;
-  --gray-color: #666;
-  --bg-color: #f3f5fd;
+  /* --- 颜色令牌 --- */
+  --color-bg:           #FFFDF5;   /* 暖奶白 */
+  --color-fg:           #1E293B;   /* 深石板 */
+  --color-muted:        #F1F5F9;   /* 浅灰 */
+  --color-muted-fg:     #64748B;   /* 中灰 */
+  --color-accent:       #8B5CF6;   /* 紫罗兰 主色 */
+  --color-accent-fg:    #FFFFFF;   /* 主色前景白 */
+  --color-secondary:    #F472B6;   /* 玫粉 */
+  --color-tertiary:     #FBBF24;   /* 琥珀黄 */
+  --color-quaternary:   #34D399;   /* 翡翠绿 */
+  --color-border:       #E2E8F0;   /* 边框浅灰 */
+  --color-card:         #FFFFFF;   /* 卡片白 */
+  --color-ring:         #8B5CF6;   /* 焦点环紫 */
+  --color-error:        #F43F5E;   /* 错误红 */
+
+  /* --- 兼容旧变量（防止其他文件引用失效）--- */
+  --blue-color:         var(--color-accent);
+  --white-color:        #ffffff;
+  --border-radius:      16px;
+  --baby-blue:          #EDE9FE;   /* 浅紫替换浅蓝 */
+  --hover-blue:         #7C3AED;
+  --red-color:          var(--color-error);
+  --black-color:        var(--color-fg);
+  --placeholder-color:  #94A3B8;
+  --gray-color:         var(--color-muted-fg);
+  --bg-color:           var(--color-bg);
+
+  /* --- 圆角 --- */
+  --radius-sm:   8px;
+  --radius-md:   16px;
+  --radius-lg:   24px;
+  --radius-full: 9999px;
+
+  /* --- 阴影（硬阴影，Playful 核心元素）--- */
+  --shadow-pop:      4px 4px 0px 0px var(--color-fg);
+  --shadow-pop-lg:   8px 8px 0px 0px var(--color-border);
+  --shadow-pop-pink: 8px 8px 0px 0px var(--color-secondary);
+  --shadow-btn:      4px 4px 0px 0px var(--color-fg);
+  --shadow-btn-hover:6px 6px 0px 0px var(--color-fg);
+  --shadow-focus:    4px 4px 0px 0px var(--color-accent);
+
+  /* --- 字体 --- */
+  --font-heading: 'Outfit', system-ui, sans-serif;
+  --font-body:    'Noto Sans SC', system-ui, sans-serif;
+
+  /* --- 过渡（弹性曲线）--- */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-* {
+/* ================================
+   全局基础重置
+   ================================ */
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
-a,
-a:hover {
-  color: var(--blue-color);
-  text-decoration: none;
-}
-
 html {
-  font-family: PingFangSC, PingFang SC;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--color-fg);
+  background-color: var(--color-bg);
+  scroll-behavior: smooth;
 }
 
-/* 重置bootstrap部分样式 */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+a, a:hover {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+/* ================================
+   Bootstrap 覆盖 - 按钮（Playful 主按钮）
+   ================================ */
 .btn-primary {
-  background-color: var(--blue-color);
-  border-color: var(--blue-color);
+  background-color: var(--color-accent);
+  border: 2px solid var(--color-fg);
+  border-radius: var(--radius-full);
+  color: var(--color-accent-fg);
+  font-family: var(--font-body);
+  font-weight: 700;
+  box-shadow: var(--shadow-btn);
+  transition: all 0.3s var(--ease-bounce);
+  white-space: nowrap;
+  position: relative;
+  top: 0;
+  left: 0;
 }
 
 .btn-primary:hover {
-  background-color: var(--hover-blue);
-  border-color: var(--hover-blue);
+  background-color: #7C3AED;
+  border-color: var(--color-fg);
+  box-shadow: var(--shadow-btn-hover);
+  transform: translate(-2px, -2px);
+  color: #fff;
 }
 
-/* 表单样式调整 */
+.btn-primary:active {
+  box-shadow: 2px 2px 0px 0px var(--color-fg);
+  transform: translate(2px, 2px);
+}
+
+.btn-primary:focus,
+.btn-primary.focus {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* 次级按钮（outline 风格）*/
+.btn-secondary,
+.btn-outline-primary {
+  background-color: transparent;
+  border: 2px solid var(--color-fg);
+  border-radius: var(--radius-full);
+  color: var(--color-fg);
+  font-weight: 600;
+  font-family: var(--font-body);
+  transition: all 0.3s var(--ease-bounce);
+  cursor: pointer;
+  padding: 6px 18px;
+}
+
+.btn-secondary:hover,
+.btn-outline-primary:hover {
+  background-color: var(--color-tertiary);
+  border-color: var(--color-fg);
+  color: var(--color-fg);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-btn);
+}
+
+/* 按钮焦点：移除默认样式 */
+.btn-outline-primary.focus,
+.btn-outline-primary:focus,
+.btn-outline-primary:not(:disabled):not(.disabled).active:focus,
+.btn-outline-primary:not(:disabled):not(.disabled):active:focus,
+.show > .btn-outline-primary.dropdown-toggle:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+/* ================================
+   表单组件
+   ================================ */
 .form-group {
   margin-bottom: 24px;
   position: relative;
 }
 
 .form-group label {
-  font-weight: 400;
-  font-size: 16px;
-  color: var(--black-color);
-  line-height: 22px;
-  margin-bottom: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--color-fg);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  display: block;
 }
 
 .form-group label.error {
   font-weight: 400;
-  font-size: 14px;
-  color: var(--red-color);
+  font-size: 13px;
+  color: var(--color-error);
   line-height: 20px;
   margin-bottom: 0;
   position: absolute;
   left: 0;
   top: 100%;
+  text-transform: none;
 }
 
 .form-group input.error {
   margin-bottom: 0;
 }
 
+/* 输入框 */
 .form-control {
   font-weight: 400;
   font-size: 14px;
+  font-family: var(--font-body);
   height: 48px;
   line-height: 48px;
-  color: var(--black-color);
+  color: var(--color-fg);
+  background-color: #fff;
+  border: 2px solid #CBD5E1;
+  border-radius: var(--radius-sm);
+  box-shadow: 4px 4px 0px transparent;
+  transition: border-color 0.2s, box-shadow 0.2s var(--ease-bounce);
+}
+
+.form-control:focus {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-focus);
+  outline: none;
 }
 
 .form-control.is-invalid,
 .was-validated .form-control:invalid,
 .form-control.is-invalid:focus,
 .was-validated .form-control:invalid:focus {
-  border-color: var(--red-color);
-  box-shadow: none;
-}
-
-.form-control:focus {
-  border-color: var(--blue-color);
-  box-shadow: none;
+  border-color: var(--color-error);
+  box-shadow: 4px 4px 0px var(--color-error);
 }
 
 input::placeholder {
@@ -98,37 +223,182 @@ input::placeholder {
 }
 
 textarea.form-control {
-  line-height: 28px;
-  letter-spacing: 1px;
-}
-
-.form-check {
-  margin-bottom: 60px;
+  line-height: 1.6;
+  height: auto;
+  min-height: 100px;
+  resize: vertical;
 }
 
 /* 复选框 */
 input[type=checkbox],
 input[type=radio] {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
 }
 
-/* 按钮 */
-.btn-outline-primary.focus,
-.btn-outline-primary:focus,
-.btn-outline-primary:not(:disabled):not(.disabled).active:focus,
-.btn-outline-primary:not(:disabled):not(.disabled):active:focus,
-.show>.btn-outline-primary.dropdown-toggle:focus {
-  outline: none;
-  box-shadow: none;
+.form-check {
+  margin-bottom: 24px;
 }
 
-:focus-visible {
-  outline: none;
+/* ================================
+   表格（Playful 风格）
+   ================================ */
+table {
+  color: var(--color-fg);
+  font-weight: 500;
+  font-size: 14px;
+  font-family: var(--font-body);
 }
-/* 表格 */
-table{
-  color: #222;
+
+.table th {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted-fg);
+  background-color: var(--color-muted);
+  border-bottom: 2px solid var(--color-border) !important;
+  padding: 16px 12px !important;
+}
+
+.table td {
+  vertical-align: middle !important;
+  border-top: 1px solid var(--color-border) !important;
+  padding: 14px 12px !important;
+  transition: background-color 0.2s;
+}
+
+.table tbody tr:hover td {
+  background-color: #FFF9E6; /* 黄色高亮行 */
+}
+
+.table td, .table th {
+  border: none;
+}
+
+.table tbody+tbody {
+  border-top: none;
+}
+
+/* ================================
+   分页组件（Playful 风格）
+   ================================ */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 20px;
+  padding-right: 8px;
+  gap: 6px;
+}
+
+.pagination button {
+  border: 2px solid var(--color-fg);
+  background-color: #fff;
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 13px;
   font-weight: 600;
-  font-size: 16px;
+  font-family: var(--font-body);
+  box-shadow: 3px 3px 0px var(--color-fg);
+  transition: all 0.25s var(--ease-bounce);
+  color: var(--color-fg);
+}
+
+.pagination button:hover {
+  background-color: var(--color-tertiary);
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px var(--color-fg);
+}
+
+.pagination span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-muted-fg);
+}
+
+.pagination input {
+  width: 60px;
+  text-align: center;
+  height: 34px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-fg);
+}
+
+/* ================================
+   通用卡片（Sticker Card）
+   ================================ */
+.geo-card {
+  background: var(--color-card);
+  border: 2px solid var(--color-fg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-pop-lg);
+  transition: all 0.3s var(--ease-bounce);
+}
+
+.geo-card:hover {
+  transform: rotate(-1deg) scale(1.02);
+  box-shadow: var(--shadow-pop-pink);
+}
+
+/* ================================
+   标题字体
+   ================================ */
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--color-fg);
+}
+
+/* ================================
+   状态标签（胶囊）
+   ================================ */
+.badge-active {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--color-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-fg);
+  box-shadow: 2px 2px 0px var(--color-fg);
+}
+
+.badge-inactive {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--color-muted);
+  color: var(--color-muted-fg);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border);
+  box-shadow: 2px 2px 0px var(--color-border);
+}
+
+/* ================================
+   几何装饰辅助类
+   ================================ */
+.geo-dot-bg {
+  /* 小圆点网格背景 */
+  background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* 减少动效（无障碍）*/
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

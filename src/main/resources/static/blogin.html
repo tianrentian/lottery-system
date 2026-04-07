@@ -2,191 +2,213 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>管理员登录页面</title>
+  <title>管理员登录 - 抽奖系统</title>
   <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="./css/base.css">
-  <<link rel="stylesheet" href="./css/login.css">
+  <link rel="stylesheet" href="./css/login.css">
+  <link rel="stylesheet" href="./css/toastr.min.css">
 </head>
 <body class="login-page">
+
 <!-- 登录框区域 -->
 <div class="login-box row">
-  <div class="img-box col-sm-6  col-md-6 col-lg-7 col-xl-7">
-      <img src="./pic/login-left.png" class="img-fluid" alt srcset>
+  <!-- 左侧装饰区 -->
+  <div class="img-box col-sm-6 col-md-6 col-lg-7 col-xl-7">
+    <!-- 用几何 SVG 替代原图片 -->
+    <svg width="100%" height="100%" viewBox="0 0 400 360" fill="none" xmlns="http://www.w3.org/2000/svg" style="max-width:380px; position:relative; z-index:1;">
+      <!-- 大圆 -->
+      <circle cx="200" cy="180" r="140" fill="#8B5CF6" opacity="0.15" stroke="#8B5CF6" stroke-width="3"/>
+      <!-- 骰子/彩票图标（几何化）-->
+      <rect x="120" y="100" width="160" height="160" rx="24" fill="white" stroke="#1E293B" stroke-width="3"/>
+      <rect x="120" y="100" width="160" height="160" rx="24" fill="white"/>
+      <!-- 骰子点 -->
+      <circle cx="165" cy="145" r="14" fill="#8B5CF6"/>
+      <circle cx="235" cy="145" r="14" fill="#F472B6"/>
+      <circle cx="165" cy="180" r="14" fill="#FBBF24"/>
+      <circle cx="235" cy="180" r="14" fill="#34D399"/>
+      <circle cx="165" cy="215" r="14" fill="#F472B6"/>
+      <circle cx="235" cy="215" r="14" fill="#8B5CF6"/>
+      <!-- 卡片描边 -->
+      <rect x="120" y="100" width="160" height="160" rx="24" fill="none" stroke="#1E293B" stroke-width="3"/>
+      <!-- 硬阴影 -->
+      <rect x="127" y="107" width="160" height="160" rx="24" fill="none" stroke="#1E293B" stroke-width="3" opacity="0.15"/>
+      <!-- 装饰小圆 -->
+      <circle cx="80" cy="80" r="20" fill="#FBBF24" stroke="#1E293B" stroke-width="2"/>
+      <circle cx="320" cy="280" r="28" fill="#34D399" stroke="#1E293B" stroke-width="2"/>
+      <circle cx="340" cy="100" r="14" fill="#F472B6" stroke="#1E293B" stroke-width="2"/>
+      <!-- 小星形（三角）-->
+      <polygon points="60,250 75,220 90,250" fill="#8B5CF6" stroke="#1E293B" stroke-width="2"/>
+    </svg>
+    <!-- 左侧标语 -->
+    <div style="margin-top: 28px; position: relative; z-index: 1; text-align: center;">
+      <p style="font-family: var(--font-heading); font-size: 22px; font-weight: 800; color: #6D28D9; margin: 0; letter-spacing: -0.5px;">抽出你的惊喜 🎲</p>
+      <p style="font-family: var(--font-body); font-size: 13px; color: #7C3AED; margin-top: 6px; opacity: 0.8;">公平 · 透明 · 高效的企业抽奖平台</p>
+    </div>
   </div>
-  <div class="login-container col-sm-6 col-md-6 col-lg-5 col-xl-5">
 
-      <div class="tab-box">
-          <span class="active tab-span" data-form="loginForm">密码登录</span>
-          <span class="tab-span" data-form="codeForm">验证码登录</span>
+  <!-- 右侧登录区 -->
+  <div class="login-container col-sm-6 col-md-6 col-lg-5 col-xl-5">
+    <h2>管理员登录</h2>
+
+    <!-- Tab 切换 -->
+    <div class="tab-box">
+      <span class="active tab-span" data-form="loginForm">🔑 密码登录</span>
+      <span class="tab-span" data-form="codeForm">📱 验证码登录</span>
+    </div>
+
+    <!-- 密码登录表单 -->
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="phoneNumber">手机号</label>
+        <input class="form-control" type="text" id="phoneNumber" name="phoneNumber" required placeholder="请输入手机号">
       </div>
-      <form id="loginForm">
-          <div class="form-group">
-              <label for="phoneNumber">手机号</label>
-              <input class="form-control" type="text" id="phoneNumber"
-                  name="phoneNumber"
-                  required placeholder="请输入手机号">
-          </div>
-          <div class="form-group">
-              <label for="password">密码</label>
-              <input class="form-control" type="password"
-                  id="password" name="password"
-                  required placeholder="请输入密码">
-          </div>
-          <button type="submit"
-              class="btn btn-primary btn-block login-btn">登录</button>
-          <div class="error"></div>
-      </form>
-      <!-- 验证码登录框 -->
-      <form id="codeForm" style="display: none;">
-          <div class="form-group">
-              <label for="loginMobile">手机号</label>
-              <input class="form-control" type="text" id="loginMobile"
-                     name="loginMobile"
-                     required placeholder="请输入手机号">
-          </div>
-          <div class="form-group">
-              <label for="verificationCode">验证码</label>
-              <div class="code-box">
-                  <input class="form-control" type="text"
-                         id="verificationCode" name="verificationCode"
-                         required placeholder="请输入验证码">
-                  <div class="btn btn-primary " id="getVerificationCode">获取验证码</div>
-              </div>
-          </div>
-          <button type="submit"
-                  class="btn btn-primary btn-block login-btn">登录</button>
-          <div class="error"></div>
-      </form>
-      <div class="register-link">
-          还没有账号，去<a href="register.html?admin=true">注册</a>
+      <div class="form-group">
+        <label for="password">密码</label>
+        <input class="form-control" type="password" id="password" name="password" required placeholder="请输入密码">
       </div>
+      <button type="submit" class="btn btn-primary btn-block login-btn">登录系统</button>
+      <div class="error" style="color: var(--color-error); font-size: 13px; margin-top: 8px;"></div>
+    </form>
+
+    <!-- 验证码登录表单 -->
+    <form id="codeForm" style="display: none;">
+      <div class="form-group">
+        <label for="loginMobile">手机号</label>
+        <input class="form-control" type="text" id="loginMobile" name="loginMobile" required placeholder="请输入手机号">
+      </div>
+      <div class="form-group">
+        <label for="verificationCode">验证码</label>
+        <div class="code-box">
+          <input class="form-control" type="text" id="verificationCode" name="verificationCode" required placeholder="请输入验证码">
+          <div class="btn btn-primary" id="getVerificationCode">获取验证码</div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block login-btn">登录系统</button>
+      <div class="error" style="color: var(--color-error); font-size: 13px; margin-top: 8px;"></div>
+    </form>
+
+    <div class="register-link">
+      还没有账号？去 <a href="register.html?admin=true">注册</a>
+    </div>
   </div>
 </div>
 
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
 <script src="https://cdn.staticfile.org/twitter-bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="./js/toastr.min.js"></script>
 <script>
-  $("#loginForm").validate({
+  // 密码登录
+  $('#loginForm').validate({
     rules: {
-      phoneNumber: "required",
-      password: {
-        required: true,
-        minlength: 6
-      }
+      phoneNumber: 'required',
+      password: { required: true, minlength: 6 }
     },
     messages: {
-      phoneNumber: "请输入您的手机号",
-      password: {
-        required: "请输入密码",
-        minlength: "密码长度至少为6个字符"
-      }
+      phoneNumber: '请输入您的手机号',
+      password: { required: '请输入密码', minlength: '密码长度至少为6个字符' }
     },
     submitHandler: function(form) {
       var loginName = $('#phoneNumber').val();
       var password = $('#password').val();
-      // 清除之前的错误消息
       $('.error').text('');
-      // 发送AJAX请求
       $.ajax({
         url: '/password/login',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify({loginName:loginName, password:password, mandatoryIdentity:"ADMIN"}),
+        data: JSON.stringify({ loginName: loginName, password: password, mandatoryIdentity: 'ADMIN' }),
         success: function(result) {
-            if(result.code != 200) {
-                alert("登录失败！" + result.msg);
-            } else {
-                localStorage.setItem("user_token",result.data.token);
-                localStorage.setItem("user_identity", "ADMIN");
-                location.assign("admin.html");
-            }
-        },
+          if (result.code != 200) {
+            alert('登录失败！' + result.msg);
+          } else {
+            localStorage.setItem('user_token', result.data.token);
+            localStorage.setItem('user_identity', 'ADMIN');
+            location.assign('admin.html');
+          }
+        }
       });
-      return false; // 阻止表单的默认提交行为
+      return false;
     }
   });
 
-  // tab切换
-  $('.tab-box span').click(function(e){
-      let formId ='#' + e.target.dataset.form
-      $(this).addClass('active')
-      $(this).siblings().removeClass('active')
-      $('form').hide()
-      console.log(formId)
-      $(formId).show()
-  })
+  // Tab 切换
+  $('.tab-box span').click(function(e) {
+    var formId = '#' + e.target.dataset.form;
+    $(this).addClass('active');
+    $(this).siblings().removeClass('active');
+    $('form').hide();
+    $(formId).show();
+  });
+
   // 获取验证码
-  var timer = null
-  $('#getVerificationCode').click(function(e){
-      console.log(e,$(this).text())
-      var txt = $(this).text()
-      var num = 60
-      if(txt.indexOf('获取')!==-1){
-          $('#getVerificationCode').text(num+'s')
-          getCode()
-          // 获取验证码接口
-          timer&&clearInterval(timer)
-          timer = setInterval(function(){
-              if(num>1){
-                  num--
-                  $('#getVerificationCode').text(num+'s')
-              }else{
-                  timer&&clearInterval(timer)
-                  $('#getVerificationCode').text('重新获取')
-              }
-          },1000)
+  var timer = null;
+  $('#getVerificationCode').click(function(e) {
+    var txt = $(this).text();
+    var num = 60;
+    if (txt.indexOf('获取') !== -1) {
+      $('#getVerificationCode').text(num + 's');
+      getCode();
+      timer && clearInterval(timer);
+      timer = setInterval(function() {
+        if (num > 1) {
+          num--;
+          $('#getVerificationCode').text(num + 's');
+        } else {
+          timer && clearInterval(timer);
+          $('#getVerificationCode').text('重新获取');
+        }
+      }, 1000);
+    }
+  });
+
+  function getCode() {
+    $.ajax({
+      url: '/verification-code/send',
+      type: 'GET',
+      data: { phoneNumber: $('#loginMobile').val() },
+      success: function(result) {
+        if (result.code != 200) {
+          timer && clearInterval(timer);
+          $('#getVerificationCode').text('重新获取');
+          toastr.error('验证码获取失败');
+        } else {
+          toastr.success('验证码发送成功');
+        }
       }
-  })
-  function getCode(){
-      $.ajax({
-          url: '/verification-code/send',
-          type: 'GET',
-          data:{ phoneNumber:$('#loginMobile').val() },
-          success: function(result) {
-              if (result.code != 200) {
-                  timer&&clearInterval(timer)
-                  $('#getVerificationCode').text('重新获取')
-                  toastr.error('验证码获取失败');
-              } else {
-                  toastr.success('验证码发送成功')
-              }
-          },
-      });
+    });
   }
+
   // 验证码登录
-  $("#codeForm").validate({
-      rules: {
-          loginMobile: "required",
-          verificationCode:"required",
-      },
-      messages: {
-          loginMobile: "请输入您的手机号",
-          verificationCode:  "请输入验证码",
-      },
-      submitHandler: function(form) {
-          var loginMobile = $('#loginMobile').val();
-          var verificationCode = $('#verificationCode').val();
-          // 清除之前的错误消息
-          $('.error').text('');
-          // 发送AJAX请求
-          $.ajax({
-              url: '/message/login',
-              type: 'POST',
-              contentType: 'application/json',
-              data: JSON.stringify({loginMobile:loginMobile, verificationCode:verificationCode, mandatoryIdentity:"ADMIN"}),
-              success: function(result) {
-                if(result.code != 200) {
-                    alert("登录失败！" + result.msg);
-                } else {
-                    localStorage.setItem("user_token",result.data.token);
-                    localStorage.setItem("user_identity", "ADMIN");
-                    location.assign("admin.html");
-            }
-              },
-          });
-          return false; // 阻止表单的默认提交行为
-      }
+  $('#codeForm').validate({
+    rules: {
+      loginMobile: 'required',
+      verificationCode: 'required'
+    },
+    messages: {
+      loginMobile: '请输入您的手机号',
+      verificationCode: '请输入验证码'
+    },
+    submitHandler: function(form) {
+      var loginMobile = $('#loginMobile').val();
+      var verificationCode = $('#verificationCode').val();
+      $('.error').text('');
+      $.ajax({
+        url: '/message/login',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ loginMobile: loginMobile, verificationCode: verificationCode, mandatoryIdentity: 'ADMIN' }),
+        success: function(result) {
+          if (result.code != 200) {
+            alert('登录失败！' + result.msg);
+          } else {
+            localStorage.setItem('user_token', result.data.token);
+            localStorage.setItem('user_identity', 'ADMIN');
+            location.assign('admin.html');
+          }
+        }
+      });
+      return false;
+    }
   });
 </script>
 </body>
