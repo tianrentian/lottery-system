@@ -16,6 +16,7 @@ public class AppConfig implements WebMvcConfigurer {
     private LoginInterceptor loginInterceptor;
 
     private final List<String> excludes = Arrays.asList(
+            "/",
             "/**/*.html",
             "/css/**",
             "/js/**",

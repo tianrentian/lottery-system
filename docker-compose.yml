@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  lottery-app:
+    build: .
+    image: lottery-system:latest
+    container_name: lottery-system
+    network_mode: "host" # 使用宿主机网络
+    volumes:
+      - /data/PIC:/PIC # 映射图片上传目录到宿主机
+    environment:
+      - TZ=Asia/Shanghai
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: lottery-redis
+    ports:
+      - "8888:6379"
+    restart: always
