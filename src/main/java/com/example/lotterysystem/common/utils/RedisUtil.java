@@ -119,4 +119,23 @@ public class RedisUtil {
         }
     }
 
+    /**
+     * 仅当key不存在时才设置值（SETNX）
+     *
+     * @param key
+     * @param value
+     * @param time 单位：秒
+     * @return true-设置成功，false-key已存在
+     */
+    public boolean setIfAbsent(String key, String value, Long time) {
+        try {
+            Boolean result = stringRedisTemplate.opsForValue()
+                    .setIfAbsent(key, value, time, TimeUnit.SECONDS);
+            return Boolean.TRUE.equals(result);
+        } catch (Exception e) {
+            logger.error("RedisUtil error, setIfAbsent({}, {}, {})", key, value, time, e);
+            return false;
+        }
+    }
+
 }

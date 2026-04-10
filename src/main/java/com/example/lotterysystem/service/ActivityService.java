@@ -17,6 +17,20 @@ public interface ActivityService {
     CreateActivityDTO createActivity(CreateActivityParam param);
 
     /**
+     * 创建活动（带幂等性token校验）
+     * @param param
+     * @param idempotentToken 幂等性token
+     * @return
+     */
+    CreateActivityDTO createActivity(CreateActivityParam param, String idempotentToken);
+
+    /**
+     * 生成幂等性token
+     * @return token字符串
+     */
+    String generateIdempotentToken();
+
+    /**
      * 翻页查询活动（摘要）列表
      *
      * @param param

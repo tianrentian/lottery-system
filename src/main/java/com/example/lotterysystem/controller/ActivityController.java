@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,14 +38,29 @@ public class ActivityController {
      * 创建活动
      *
      * @param param
+     * @param idempotentToken 幂等性token（可选，用于防重提交）
      * @return
      */
     @RequestMapping("/activity/create")
     public CommonResult<CreateActivityResult> createActivity(
-            @Validated @RequestBody CreateActivityParam param) {
-        logger.info("createActivity CreateActivityParam:{}",
-                JacksonUtil.writeValueAsString(param));
-        return CommonResult.success(convertToCreateActivityResult(activityService.createActivity(param)));
+            @Validated @RequestBody CreateActivityParam param,
+            @RequestHeader(value = "Idempotent-Token", required = false) String idempotentToken) {
+        logger.info("createActivity CreateActivityParam:{}, idempotentToken:{}",
+                JacksonUtil.writeValueAsString(param), idempotentToken);
+        return CommonResult.success(convertToCreateActivityResult(
+                activityService.createActivity(param, idempotentToken)));
+    }
+
+    /**
+     * 获取幂等性token（用于防重提交）
+     *
+     * @return
+     */
+    @RequestMapping("/activity/create-token")
+    public CommonResult<String> getIdempotentToken() {
+        String token = activityService.generateIdempotentToken();
+        logger.info("generateIdempotentToken: {}", token);
+        return CommonResult.success(token);
     }
 
     @RequestMapping("/activity/find-list")

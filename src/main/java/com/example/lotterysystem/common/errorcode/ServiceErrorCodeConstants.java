@@ -27,6 +27,8 @@ public interface ServiceErrorCodeConstants {
     ErrorCode ACTIVITY_STATUS_CONVERT_ERROR = new ErrorCode(305,"活动相关状态转换失败");
     ErrorCode CACHE_ACTIVITY_ID_IS_EMPTY = new ErrorCode(306, "缓存活动的活动id为空");
     ErrorCode CACHE_ACTIVITY_ID_ERROR = new ErrorCode(307, "缓存活动的活动id有误");
+    ErrorCode IDEMPOTENT_TOKEN_ERROR = new ErrorCode(308, "幂等性token错误或已过期");
+    ErrorCode REPEAT_SUBMIT_ERROR = new ErrorCode(309, "请勿重复提交");
 
 
     // ------ 抽奖错误码 --------

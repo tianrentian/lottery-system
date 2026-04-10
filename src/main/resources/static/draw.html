@@ -1,23 +1,35 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="utf-8">
     <title>抽奖页面</title>
     <style type="text/css">
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100%; height: 100%; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
         body {
             text-align: center;
             background: linear-gradient(135deg, #FFFDF5 0%, #FEF08A 50%, #FCA5A5 100%);
             /* 叠加一层点阵和圆形背景 */
-            background-image: 
+            background-image:
                 radial-gradient(circle at 15% 20%, rgba(244, 114, 182, 0.4) 0%, transparent 40%),
                 radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.3) 0%, transparent 35%),
                 radial-gradient(rgba(0, 0, 0, 0.05) 2px, transparent 2px);
             background-size: 100% 100%, 100% 100%, 30px 30px;
             overflow: hidden;
             font-family: 'Outfit', 'Noto Sans SC', system-ui, sans-serif;
-            color: #1E293B; /* 深色文字而非红色，更现代 */
+            color: #1E293B;
+            /* 深色文字而非红色，更现代 */
         }
 
         #container {
@@ -106,7 +118,8 @@
             font-size: 28px;
             font-weight: 800;
             border-radius: 100px;
-            box-shadow: 6px 6px 0px #34D399; /* 绿色阴影 */
+            box-shadow: 6px 6px 0px #34D399;
+            /* 绿色阴影 */
             min-width: 160px;
             color: #1E293B;
         }
@@ -120,7 +133,7 @@
             justify-content: flex-start !important;
             align-content: flex-start !important;
         }
-        
+
         .records-item div {
             background: #fff;
             border: 3px solid #1E293B;
@@ -152,7 +165,7 @@
             border-radius: 9999px;
             box-shadow: 6px 6px 0px #1E293B;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .opt-box .btn:hover {
@@ -160,354 +173,369 @@
             box-shadow: 9px 9px 0px #1E293B;
             background: #7C3AED;
         }
-        
+
         .opt-box .btn.pre-btn {
-            background: #F472B6; /* 前一个按钮粉色 */
+            background: #F472B6;
+            /* 前一个按钮粉色 */
         }
-        .opt-box .btn.pre-btn:hover { background: #DB2777; }
+
+        .opt-box .btn.pre-btn:hover {
+            background: #DB2777;
+        }
 
         .opt-box .btn.copy-btn {
-            background: #34D399; /* 分享按钮绿色 */
+            background: #34D399;
+            /* 分享按钮绿色 */
         }
-        .opt-box .btn.copy-btn:hover { background: #059669; }
+
+        .opt-box .btn.copy-btn:hover {
+            background: #059669;
+        }
 
         /* 隐藏原版滚动条 */
-        .records-item::-webkit-scrollbar { width: 8px; }
-        .records-item::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+        .records-item::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .records-item::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
 <body>
-<div id="container">
-    <div class="glass-box">
-        <div id="title"></div>
-        <div id="disc"></div>
-        <img id="image" />
-        <div id="list"></div>
-        <div class="opt-box">
-            <span class="btn pre-btn" onclick="previousStep()">上一奖项</span>
-            <span class="btn next-btn" onclick="nextStep()">开始抽奖</span>
+    <div id="container">
+        <div class="glass-box">
+            <div id="title"></div>
+            <div id="disc"></div>
+            <img id="image" />
+            <div id="list"></div>
+            <div class="opt-box">
+                <span class="btn pre-btn" onclick="previousStep()">上一奖项</span>
+                <span class="btn next-btn" onclick="nextStep()">开始抽奖</span>
+            </div>
         </div>
     </div>
-</div>
-<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script>
-    var params = new URLSearchParams(window.location.search);
-    var activityId = params.get('activityId');
-    var valid = params.get('valid');
-    var userToken = localStorage.getItem("user_token");
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        var params = new URLSearchParams(window.location.search);
+        var activityId = params.get('activityId');
+        var valid = params.get('valid');
+        var userToken = localStorage.getItem("user_token");
 
-    var disc = document.getElementById('disc')
-    var image = document.getElementById('image')
-    var list = document.getElementById('list')
+        var disc = document.getElementById('disc')
+        var image = document.getElementById('image')
+        var list = document.getElementById('list')
 
-    var steps = null
-    var step = 0
-    var names = null
-    var state = ''
+        var steps = null
+        var step = 0
+        var names = null
+        var state = ''
 
-    document.addEventListener('DOMContentLoaded', function() {
-        var titleDiv = document.getElementById('title');
-        var activityName = params.get('activityName');
-        titleDiv.textContent = activityName;
-    });
+        document.addEventListener('DOMContentLoaded', function () {
+            var titleDiv = document.getElementById('title');
+            var activityName = params.get('activityName');
+            titleDiv.textContent = activityName;
+        });
 
-    function formatDate(dateString) {
-        var date = new Date(dateString);
-        var hour = ('0' + date.getHours()).slice(-2);
-        var minute = ('0' + date.getMinutes()).slice(-2);
-        var second = ('0' + date.getSeconds()).slice(-2);
-        return hour + ':' + minute + ':' + second;
-    }
+        function formatDate(dateString) {
+            var date = new Date(dateString);
+            var hour = ('0' + date.getHours()).slice(-2);
+            var minute = ('0' + date.getMinutes()).slice(-2);
+            var second = ('0' + date.getSeconds()).slice(-2);
+            return hour + ':' + minute + ':' + second;
+        }
 
-    function showPic(data) {
-        disc.style.display = 'inline-block';
-        disc.innerHTML = data.prizeTierName + ' - ' + data.name + ' (' + data.prizeAmount + '份)'
-        image.src = data.imageUrl ? data.imageUrl : '/pic/defaultPrizeImg.png'
-        image.style.display = 'block'
-        list.style.display = 'none'
-        while (list.hasChildNodes()) { list.removeChild(list.firstChild) }
-    }
+        function showPic(data) {
+            disc.style.display = 'inline-block';
+            disc.innerHTML = data.prizeTierName + ' - ' + data.name + ' (' + data.prizeAmount + '份)'
+            image.src = data.imageUrl ? data.imageUrl : '/pic/defaultPrizeImg.png'
+            image.style.display = 'block'
+            list.style.display = 'none'
+            while (list.hasChildNodes()) { list.removeChild(list.firstChild) }
+        }
 
-    function showRecords() {
-        disc.style.display = 'inline-block';
-        disc.innerHTML = "🎉 中奖名单 🎉"
-        image.style.display = 'none'
-        list.style.display = 'flex'
-        while (list.hasChildNodes()) { list.removeChild(list.firstChild) }
-        
-        $.ajax({
-            url: '/winning-records/show',
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json',
-            data: JSON.stringify({activityId: activityId}),
-            headers: { 'user_token': userToken },
-            success: function(result) {
-                if (result.code != 200) {
-                    alert("查询中奖记录失败！" + result.msg);
-                } else {
-                    var records = result.data
-                    list.className = "records-item"
-                    for (var i = 0; i < records.length; ++i) {
-                        var item = document.createElement('div')
-                        // 分别包裹以美化展示
-                        item.innerHTML = `
+        function showRecords() {
+            disc.style.display = 'inline-block';
+            disc.innerHTML = "🎉 中奖名单 🎉"
+            image.style.display = 'none'
+            list.style.display = 'flex'
+            while (list.hasChildNodes()) { list.removeChild(list.firstChild) }
+
+            $.ajax({
+                url: '/winning-records/show',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ activityId: activityId }),
+                headers: { 'user_token': userToken },
+                success: function (result) {
+                    if (result.code != 200) {
+                        alert("查询中奖记录失败！" + result.msg);
+                    } else {
+                        var records = result.data
+                        list.className = "records-item"
+                        for (var i = 0; i < records.length; ++i) {
+                            var item = document.createElement('div')
+                            // 分别包裹以美化展示
+                            item.innerHTML = `
                             <span>${formatDate(records[i].winningTime)}</span>
                             <span style="color:#8B5CF6;">${records[i].winnerName}</span>
                             <span>${records[i].prizeTier} - ${records[i].prizeName}</span>
                         `;
-                        list.appendChild(item)
-                    }
+                            list.appendChild(item)
+                        }
 
-                    var optBox = document.querySelector('.opt-box');
-                    var existingBtn = optBox.querySelector('.btn.copy-btn');
-                    if (!existingBtn) {
-                        var newBtn = document.createElement('span');
-                        newBtn.className = 'btn copy-btn';
-                        newBtn.onclick = function() {
-                            var currentUrl = new URL(window.location);
-                            var searchParams = currentUrl.searchParams;
-                            searchParams.delete('valid');
-                            searchParams.append('valid', false);
-                            searchParams.delete('hideButton');
-                            searchParams.append('hideButton', true);
-                            currentUrl.search = searchParams.toString();
-                            copyToClipboard(currentUrl);
-                        };
-                        newBtn.textContent = '分享结果';
-                        optBox.appendChild(newBtn);
-                    }
+                        var optBox = document.querySelector('.opt-box');
+                        var existingBtn = optBox.querySelector('.btn.copy-btn');
+                        if (!existingBtn) {
+                            var newBtn = document.createElement('span');
+                            newBtn.className = 'btn copy-btn';
+                            newBtn.onclick = function () {
+                                var currentUrl = new URL(window.location);
+                                var searchParams = currentUrl.searchParams;
+                                searchParams.delete('valid');
+                                searchParams.append('valid', false);
+                                searchParams.delete('hideButton');
+                                searchParams.append('hideButton', true);
+                                currentUrl.search = searchParams.toString();
+                                copyToClipboard(currentUrl);
+                            };
+                            newBtn.textContent = '分享结果';
+                            optBox.appendChild(newBtn);
+                        }
 
-                    var hideButton = params.get('hideButton');
-                    if ((hideButton == null && valid === 'false') || hideButton === 'true') {
-                        var buttons = document.querySelectorAll('.btn.pre-btn, .btn.next-btn');
-                        buttons.forEach(function(button) { button.style.display = 'none'; });
-                    }
-                }
-            }
-        });
-    }
-
-    function copyToClipboard(textToCopy) {
-        if (navigator.clipboard && window.isSecureContext) {
-            return navigator.clipboard.writeText(textToCopy).then(() => {alert("链接已复制到剪贴板");});
-        } else {
-            let textArea = document.createElement("textarea");
-            textArea.value = textToCopy;
-            textArea.style.position = "absolute";
-            textArea.style.opacity = 0;
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            return new Promise((res, rej) => {
-                document.execCommand('copy') ? res() : rej();
-                textArea.remove();
-                alert("链接已复制到剪贴板");
-            });
-        }
-    }
-
-    function showBlink(data) {
-        disc.innerHTML = data.prizeTierName + ' - ' + data.name + ' (' + data.prizeAmount + '份)'
-        image.style.display = 'none'
-        list.style.display = 'flex'
-        list.className = ""
-        var spans = []
-        for (var i = 0; i < data.prizeAmount; ++i) {
-            var span = document.createElement('span')
-            list.appendChild(span)
-            spans.push(span)
-        }
-
-        function doBlink() {
-            if (state == 'showBlink') {
-                names.sort(function(a, b) { return 0.5 - Math.random() })
-                for (var i = 0; i < Math.min(data.prizeAmount, names.length); ++i) {
-                    spans[i].innerHTML = names[i].userName
-                }
-                window.requestAnimationFrame(doBlink)
-            }
-        }
-        window.requestAnimationFrame(doBlink)
-    }
-
-    function showWinnerListWithPrize(data) {
-        $.ajax({
-            url: '/winning-records/show',
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json',
-            headers: { 'user_token': userToken },
-            data: JSON.stringify({activityId: activityId, prizeId: data.prizeId}),
-            success: function(result) {
-                if (result.code != 200) {
-                    alert("查询中奖记录失败！" + result.msg);
-                } else {
-                    var luckRecords = result.data
-                    var luck = []
-                    var needRemoves = luckRecords.map(function(luckRecord) { return luckRecord.winnerId; });
-                    for (var i = 0; i < names.length; i++) {
-                        if (needRemoves.includes(names[i].userId)) {
-                            var tmp = names.splice(i, 1)
-                            luck = luck.concat(tmp)
-                            i--
+                        var hideButton = params.get('hideButton');
+                        if ((hideButton == null && valid === 'false') || hideButton === 'true') {
+                            var buttons = document.querySelectorAll('.btn.pre-btn, .btn.next-btn');
+                            buttons.forEach(function (button) { button.style.display = 'none'; });
                         }
                     }
-                    data.list = luck.map(x => x)
-                    for (var i = 0; i < data.list.length; ++i) {
-                        var span = document.createElement('span')
-                        // 新抽出的名单：黄色阴影
-                        span.style.boxShadow = "6px 6px 0px #FBBF24"; 
-                        span.innerHTML = '🎉 ' + data.list[i].userName
-                        list.appendChild(span)
+                }
+            });
+        }
+
+        function copyToClipboard(textToCopy) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(textToCopy).then(() => { alert("链接已复制到剪贴板"); });
+            } else {
+                let textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                textArea.style.position = "absolute";
+                textArea.style.opacity = 0;
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                return new Promise((res, rej) => {
+                    document.execCommand('copy') ? res() : rej();
+                    textArea.remove();
+                    alert("链接已复制到剪贴板");
+                });
+            }
+        }
+
+        function showBlink(data) {
+            disc.innerHTML = data.prizeTierName + ' - ' + data.name + ' (' + data.prizeAmount + '份)'
+            image.style.display = 'none'
+            list.style.display = 'flex'
+            list.className = ""
+            var spans = []
+            for (var i = 0; i < data.prizeAmount; ++i) {
+                var span = document.createElement('span')
+                list.appendChild(span)
+                spans.push(span)
+            }
+
+            function doBlink() {
+                if (state == 'showBlink') {
+                    names.sort(function (a, b) { return 0.5 - Math.random() })
+                    for (var i = 0; i < Math.min(data.prizeAmount, names.length); ++i) {
+                        spans[i].innerHTML = names[i].userName
+                    }
+                    window.requestAnimationFrame(doBlink)
+                }
+            }
+            window.requestAnimationFrame(doBlink)
+        }
+
+        function showWinnerListWithPrize(data) {
+            $.ajax({
+                url: '/winning-records/show',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                headers: { 'user_token': userToken },
+                data: JSON.stringify({ activityId: activityId, prizeId: data.prizeId }),
+                success: function (result) {
+                    if (result.code != 200) {
+                        alert("查询中奖记录失败！" + result.msg);
+                    } else {
+                        var luckRecords = result.data
+                        var luck = []
+                        var needRemoves = luckRecords.map(function (luckRecord) { return luckRecord.winnerId; });
+                        for (var i = 0; i < names.length; i++) {
+                            if (needRemoves.includes(names[i].userId)) {
+                                var tmp = names.splice(i, 1)
+                                luck = luck.concat(tmp)
+                                i--
+                            }
+                        }
+                        data.list = luck.map(x => x)
+                        for (var i = 0; i < data.list.length; ++i) {
+                            var span = document.createElement('span')
+                            // 新抽出的名单：黄色阴影
+                            span.style.boxShadow = "6px 6px 0px #FBBF24";
+                            span.innerHTML = '🎉 ' + data.list[i].userName
+                            list.appendChild(span)
+                        }
                     }
                 }
-            }
-        });
-    }
-
-    function showList(data) {
-        disc.innerHTML = data.prizeTierName + ' - ' + data.name + ' (' + data.prizeAmount + '份)'
-        image.style.display = 'none'
-        list.style.display = 'flex'
-        list.className = ""
-        while (list.hasChildNodes()) { list.removeChild(list.firstChild) }
-
-        data.list = data.list || []
-        if (data.list.length > 0) {
-            for (var i = 0; i < data.list.length; ++i) {
-                var span = document.createElement('span')
-                span.style.boxShadow = "6px 6px 0px #FBBF24"; 
-                span.innerHTML = '🎉 ' + data.list[i].userName
-                list.appendChild(span)
-            }
-        } else {
-            showWinnerListWithPrize(data)
+            });
         }
-    }
 
-    function changeNextButtonText(text) {
-        var nextButton = document.querySelector('.btn.next-btn');
-        if(nextButton) nextButton.textContent = text;
-    }
+        function showList(data) {
+            disc.innerHTML = data.prizeTierName + ' - ' + data.name + ' (' + data.prizeAmount + '份)'
+            image.style.display = 'none'
+            list.style.display = 'flex'
+            list.className = ""
+            while (list.hasChildNodes()) { list.removeChild(list.firstChild) }
 
-    function saveLuck(data, callback) {
-        $.ajax({
-            url: '/draw-prize',
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json',
-            headers: { 'user_token': userToken },
-            data: JSON.stringify({ activityId: activityId, prizeId: data.prizeId, winningTime: new Date() }),
-            success: function(result) {
-                if (result.code != 200) {
-                    alert("抽奖失败！" + result.msg);
-                } else {
-                    if (callback) callback();
+            data.list = data.list || []
+            if (data.list.length > 0) {
+                for (var i = 0; i < data.list.length; ++i) {
+                    var span = document.createElement('span')
+                    span.style.boxShadow = "6px 6px 0px #FBBF24";
+                    span.innerHTML = '🎉 ' + data.list[i].userName
+                    list.appendChild(span)
                 }
-            },
-            error: function(err) {
-                if (err != null && err.status == 401) {
-                    alert("用户未登录!");
-                    location.href = "/blogin.html";
-                }
-            }
-        });
-    }
-
-    function nextStep() {
-        if (!steps || steps.length === 0) return;
-        var data = steps[step]
-        if (state == 'showPic') {
-            if (data.valid) {
-                state = 'showBlink'
-                showBlink(data)
-                changeNextButtonText('点击停止滚动')
             } else {
+                showWinnerListWithPrize(data)
+            }
+        }
+
+        function changeNextButtonText(text) {
+            var nextButton = document.querySelector('.btn.next-btn');
+            if (nextButton) nextButton.textContent = text;
+        }
+
+        function saveLuck(data, callback) {
+            $.ajax({
+                url: '/draw-prize',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                headers: { 'user_token': userToken },
+                data: JSON.stringify({ activityId: activityId, prizeId: data.prizeId, winningTime: new Date() }),
+                success: function (result) {
+                    if (result.code != 200) {
+                        alert("抽奖失败！" + result.msg);
+                    } else {
+                        if (callback) callback();
+                    }
+                },
+                error: function (err) {
+                    if (err != null && err.status == 401) {
+                        alert("用户未登录!");
+                        location.href = "/blogin.html";
+                    }
+                }
+            });
+        }
+
+        function nextStep() {
+            if (!steps || steps.length === 0) return;
+            var data = steps[step]
+            if (state == 'showPic') {
+                if (data.valid) {
+                    state = 'showBlink'
+                    showBlink(data)
+                    changeNextButtonText('点击停止滚动')
+                } else {
+                    state = 'showList'
+                    showList(data)
+                    changeNextButtonText('已抽完，下一步')
+                }
+            } else if (state == 'showBlink') {
+                data.list = []
+                data.valid = false
                 state = 'showList'
-                showList(data)
-                changeNextButtonText('已抽完，下一步')
-            }
-        } else if (state == 'showBlink') {
-            data.list = []
-            data.valid = false
-            state = 'showList'
-            saveLuck(data, function() {
-                showList(data)
-                changeNextButtonText('已抽完，下一步')
-            })
-        } else if (state == 'showList') {
-            if (step < (steps.length - 1)) {
-                ++step
-                state = ''
-                nextStep()
-                changeNextButtonText('开始下一轮')
-            } else {
-                if (step == (steps.length - 1)) { ++step }
-                showRecords()
-                changeNextButtonText('已全部抽完')
-            }
-        } else {
-            state = 'showPic'
-            showPic(data)
-            changeNextButtonText('滚滚动动 🎲')
-        }
-    }
-
-    function previousStep() {
-        if (step > 0) { --step }
-        state = ''
-        nextStep()
-    }
-
-    function drawPage() {
-        if (valid == "true") {
-            var identity = localStorage.getItem("user_identity");
-            if (identity == "ADMIN") {
-                reloadConf(nextStep)
-            } else {
-                disc.innerHTML = "提示";
-                disc.style.display = 'inline-block';
-                list.style.display = 'none';
-                image.style.display = 'none';
-                document.querySelector('.opt-box').style.display = 'none';
-                var msg = document.createElement('h3');
-                msg.style.color = '#1E293B';
-                msg.textContent = "抽奖未结束，由于您不是管理员，无权限参与抽奖。请耐心等待抽奖结束后查看中奖名单";
-                document.querySelector('.glass-box').appendChild(msg);
-            }
-        } else {
-            showRecords()
-        }
-    }
-
-    function reloadConf(func) {
-        $.ajax({
-            url: '/activity-detail/find',
-            type: 'GET',
-            data: { activityId: activityId },
-            dataType: 'json',
-            headers: { 'user_token': userToken },
-            success: function(result) {
-                if (result.code != 200) {
-                    alert("获取活动详情失败！" + result.msg);
+                saveLuck(data, function () {
+                    showList(data)
+                    changeNextButtonText('已抽完，下一步')
+                })
+            } else if (state == 'showList') {
+                if (step < (steps.length - 1)) {
+                    ++step
+                    state = ''
+                    nextStep()
+                    changeNextButtonText('开始下一轮')
                 } else {
-                    names = result.data.users;
-                    steps = result.data.prizes;
-                    if (func) func();
+                    if (step == (steps.length - 1)) { ++step }
+                    showRecords()
+                    changeNextButtonText('已全部抽完')
                 }
-            },
-            error:function(err){
-                if(err!=null && err.status==401){
-                    alert("用户未登录!");
-                    location.href ="/blogin.html";
-                }
+            } else {
+                state = 'showPic'
+                showPic(data)
+                changeNextButtonText('滚滚动动 🎲')
             }
-        });
-    }
+        }
 
-    drawPage()
-</script>
+        function previousStep() {
+            if (step > 0) { --step }
+            state = ''
+            nextStep()
+        }
+
+        function drawPage() {
+            if (valid == "true") {
+                var identity = localStorage.getItem("user_identity");
+                if (identity == "ADMIN") {
+                    reloadConf(nextStep)
+                } else {
+                    disc.innerHTML = "提示";
+                    disc.style.display = 'inline-block';
+                    list.style.display = 'none';
+                    image.style.display = 'none';
+                    document.querySelector('.opt-box').style.display = 'none';
+                    var msg = document.createElement('h3');
+                    msg.style.color = '#1E293B';
+                    msg.textContent = "抽奖未结束，由于您不是管理员，无权限参与抽奖。请耐心等待抽奖结束后查看中奖名单";
+                    document.querySelector('.glass-box').appendChild(msg);
+                }
+            } else {
+                showRecords()
+            }
+        }
+
+        function reloadConf(func) {
+            $.ajax({
+                url: '/activity-detail/find',
+                type: 'GET',
+                data: { activityId: activityId },
+                dataType: 'json',
+                headers: { 'user_token': userToken },
+                success: function (result) {
+                    if (result.code != 200) {
+                        alert("获取活动详情失败！" + result.msg);
+                    } else {
+                        names = result.data.users;
+                        steps = result.data.prizes;
+                        if (func) func();
+                    }
+                },
+                error: function (err) {
+                    if (err != null && err.status == 401) {
+                        alert("用户未登录!");
+                        location.href = "/blogin.html";
+                    }
+                }
+            });
+        }
+
+        drawPage()
+    </script>
 </body>
+
 </html>

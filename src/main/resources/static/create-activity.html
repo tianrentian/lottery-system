@@ -217,6 +217,8 @@
     var userToken = localStorage.getItem("user_token");
     var selectedPrizes = [];
     var selectedUsers = [];
+    var idempotentToken = null;
+    var isSubmitting = false;
 
     // 显示隐藏模态框
     function showPrizesModal() { $('#prizesModal').css('display', 'block'); }
@@ -323,15 +325,41 @@
         $('#buttonUsers').text(selectedUsers.length > 0 ? `圈选人员 (已选 ${selectedUsers.length})` : '2. 圈选人员');
     }
 
+    // 获取幂等性token
+    function fetchIdempotentToken() {
+        $.ajax({
+            url: '/activity/create-token',
+            type: 'GET',
+            headers: { "user_token": userToken },
+            success: function(result) {
+                if (result.code === 200) {
+                    idempotentToken = result.data;
+                }
+            }
+        });
+    }
+
     // 表单提交
     $('#createActivity').click(function(event){
         event.stopPropagation();
+        
+        // 防止重复提交
+        if (isSubmitting) {
+            alert('正在创建中，请勿重复点击！');
+            return false;
+        }
+        
         $('#activityForm').validate({
             rules:{ activityName: "required", description: "required" },
             messages:{ activityName: "请输入活动名称", description: "请输入活动描述" },
             submitHandler: function(form){
                 if (selectedPrizes.length == 0) { alert('请至少选择一个奖品'); return false; }
                 if (selectedUsers.length == 0) { alert('请至少选择一个人员, 人员数量应大于等于奖品总量'); return false; }
+                
+                // 标记正在提交，禁用按钮
+                isSubmitting = true;
+                var $btn = $('#createActivity');
+                $btn.prop('disabled', true).text('创建中...');
                 
                 var data = {
                     activityName: $('#activityName').val(),
@@ -345,13 +373,30 @@
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(data),
-                    headers: { "user_token": userToken },
+                    headers: { 
+                        "user_token": userToken,
+                        "Idempotent-Token": idempotentToken
+                    },
                     success: function(result) {
-                        if (result.code != 200) alert("创建失败！" + result.msg);
-                        else {
+                        if (result.code != 200) {
+                            alert("创建失败！" + result.msg);
+                            // 重置状态，允许重新提交
+                            isSubmitting = false;
+                            $btn.prop('disabled', false).text('3. 立刻创建');
+                            // 重新获取token
+                            fetchIdempotentToken();
+                        } else {
                             alert("创建成功!");
                             window.parent.postMessage({ from: 'activities-list.html', id: '#activitiesList' }, '*');
                         }
+                    },
+                    error: function() {
+                        alert("网络错误，请稍后重试！");
+                        // 重置状态
+                        isSubmitting = false;
+                        $btn.prop('disabled', false).text('3. 立刻创建');
+                        // 重新获取token
+                        fetchIdempotentToken();
                     }
                 });
             }
@@ -359,6 +404,7 @@
     });
 
     $(document).ready(function() {
+        fetchIdempotentToken();
         fetchPrizes();
         fetchUsers();
     });

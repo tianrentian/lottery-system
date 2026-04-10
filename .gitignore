@@ -38,3 +38,13 @@ build/
 .agents/
 _agent/
 _agents/
+
+### Qoder IDE ###
+.qoder/
+
+### Redis ###
+dump.rdb
+*.rdb
+
+### Blog ###
+防止重复提交-幂等性设计.md

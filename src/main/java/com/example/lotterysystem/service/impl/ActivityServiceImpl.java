@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,7 +47,15 @@ public class ActivityServiceImpl implements ActivityService {
     /**
      * 活动缓存过期时间
      */
-    private final Long ACTIVITY_TIMEOUT = 60*60*24*3L;
+    private final Long ACTIVITY_TIMEOUT = 60 * 60 * 24 * 3L;
+    /**
+     * 幂等性token前缀
+     */
+    private final String IDEMPOTENT_TOKEN_PREFIX = "IDEMPOTENT_TOKEN_";
+    /**
+     * 幂等性token过期时间（5分钟）
+     */
+    private final Long IDEMPOTENT_TOKEN_TIMEOUT = 60 * 5L;
 
     @Autowired
     private UserMapper userMapper;
@@ -64,6 +73,22 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional(rollbackFor = Exception.class) // 涉及多表
     public CreateActivityDTO createActivity(CreateActivityParam param) {
+        return createActivity(param, null);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public CreateActivityDTO createActivity(CreateActivityParam param, String idempotentToken) {
+        // 校验幂等性token
+        if (StringUtils.hasText(idempotentToken)) {
+            String tokenKey = IDEMPOTENT_TOKEN_PREFIX + idempotentToken;
+            // 尝试删除token，如果删除成功说明token有效且未被使用
+            boolean tokenValid = redisUtil.del(tokenKey);
+            if (!tokenValid) {
+                throw new ServiceException(ServiceErrorCodeConstants.REPEAT_SUBMIT_ERROR);
+            }
+        }
+
         // 校验活动信息是否正确
         checkActivityInfo(param);
 
@@ -98,7 +123,7 @@ public class ActivityServiceImpl implements ActivityService {
                     activityUserDO.setUserName(userParam.getUserName());
                     activityUserDO.setStatus(ActivityUserStatusEnum.INIT.name());
                     return activityUserDO;
-        }).collect(Collectors.toList());
+                }).collect(Collectors.toList());
         activityUserMapper.batchInsert(activityUserDOList);
 
         // 整合完整的活动信息，存放redis
@@ -182,6 +207,15 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
+    public String generateIdempotentToken() {
+        String token = UUID.randomUUID().toString().replace("-", "");
+        String tokenKey = IDEMPOTENT_TOKEN_PREFIX + token;
+        // 将token存入Redis，设置5分钟过期时间
+        redisUtil.set(tokenKey, "1", IDEMPOTENT_TOKEN_TIMEOUT);
+        return token;
+    }
+
+    @Override
     public void cacheActivity(Long activityId) {
         if (null == activityId) {
             logger.warn("要缓存的活动id为空！");
@@ -195,7 +229,7 @@ public class ActivityServiceImpl implements ActivityService {
             throw new ServiceException(ServiceErrorCodeConstants.CACHE_ACTIVITY_ID_ERROR);
         }
         // 活动奖品表
-        List<ActivityPrizeDO> apDOList =  activityPrizeMapper.selectByActivityId(activityId);
+        List<ActivityPrizeDO> apDOList = activityPrizeMapper.selectByActivityId(activityId);
         // 活动人员表
         List<ActivityUserDO> auDOList = activityUserMapper.selectByActivityId(activityId);
         // 奖品表: 先获取要查询的奖品id
@@ -248,7 +282,7 @@ public class ActivityServiceImpl implements ActivityService {
         try {
             String str = redisUtil.get(ACTIVITY_PREFIX + activityId);
             if (StringUtils.hasText(str)) {
-                logger.info("获取的缓存数据为空！key={}",ACTIVITY_PREFIX + activityId);
+                logger.info("获取的缓存数据为空！key={}", ACTIVITY_PREFIX + activityId);
                 return null;
             }
             return JacksonUtil.readValue(str, ActivityDetailDTO.class);
@@ -260,9 +294,9 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     private ActivityDetailDTO convertToActivityDetailDTO(ActivityDO activityDO,
-                                                         List<ActivityUserDO> activityUserDOList,
-                                                         List<PrizeDO> prizeDOList,
-                                                         List<ActivityPrizeDO> activityPrizeDOList) {
+            List<ActivityUserDO> activityUserDOList,
+            List<PrizeDO> prizeDOList,
+            List<ActivityPrizeDO> activityPrizeDOList) {
         ActivityDetailDTO detailDTO = new ActivityDetailDTO();
         detailDTO.setActivityId(activityDO.getId());
         detailDTO.setActivityName(activityDO.getActivityName());
@@ -294,7 +328,7 @@ public class ActivityServiceImpl implements ActivityService {
         detailDTO.setPrizeDTOList(prizeDTOList);
 
         List<ActivityDetailDTO.UserDTO> userDTOList = activityUserDOList.stream()
-                .map(auDO ->{
+                .map(auDO -> {
                     ActivityDetailDTO.UserDTO userDTO = new ActivityDetailDTO.UserDTO();
                     userDTO.setUserId(auDO.getUserId());
                     userDTO.setUserName(auDO.getUserName());
@@ -308,6 +342,7 @@ public class ActivityServiceImpl implements ActivityService {
 
     /**
      * 校验活动有效性
+     * 
      * @param param
      */
     private void checkActivityInfo(CreateActivityParam param) {

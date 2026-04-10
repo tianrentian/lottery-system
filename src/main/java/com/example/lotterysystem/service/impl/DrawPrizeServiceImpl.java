@@ -37,7 +37,7 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
     /** 活动级分布式锁前缀：保证同一活动的并发抽奖请求在 API 入口串行化，防止并发读到相同候选人名单 */
     private static final String DRAW_LOCK_ACTIVITY_PREFIX = "DRAW_LOCK_ACTIVITY:";
 
-    private final  String WINNING_RECORDS_PREFIX = "WINNING_RECORDS_";
+    private final String WINNING_RECORDS_PREFIX = "WINNING_RECORDS_";
     private final Long WINNING_RECORDS_TIMEOUT = 60 * 60 * 24 * 2L;
 
     @Autowired
@@ -66,10 +66,10 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
 
         // ── 活动级分布式锁（粗粒度）──────────────────────────────────────────────
         // 设计说明：
-        //   同一活动下存在多个奖品，若并发触发不同奖品的抽奖请求，
-        //   各请求会读取同一份 INIT 状态候选人名单，可能造成同一人被不同奖品同时选中。
-        //   因此在 API 入口处以「活动维度」加锁，保证同一活动的所有抽奖请求串行执行。
-        //   MqReceiver 中的「奖品级细粒度锁」不受影响，仍负责防止 MQ 重复消费（幂等保障）。
+        // 同一活动下存在多个奖品，若并发触发不同奖品的抽奖请求，
+        // 各请求会读取同一份 INIT 状态候选人名单，可能造成同一人被不同奖品同时选中。
+        // 因此在 API 入口处以「活动维度」加锁，保证同一活动的所有抽奖请求串行执行。
+        // MqReceiver 中的「奖品级细粒度锁」不受影响，仍负责防止 MQ 重复消费（幂等保障）。
         String activityLockKey = DRAW_LOCK_ACTIVITY_PREFIX + param.getActivityId();
         RLock activityLock = redissonClient.getLock(activityLockKey);
         boolean acquired;
@@ -155,7 +155,8 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
 
         // 活动或奖品是否存在
         if (null == activityDO || null == activityPrizeDO) {
-            // throw new ServiceException(ServiceErrorCodeConstants.ACTIVITY_OR_PRIZE_IS_EMPTY);
+            // throw new
+            // ServiceException(ServiceErrorCodeConstants.ACTIVITY_OR_PRIZE_IS_EMPTY);
             logger.info("校验抽奖请求失败！失败原因：{}",
                     ServiceErrorCodeConstants.ACTIVITY_OR_PRIZE_IS_EMPTY.getMsg());
             return false;
@@ -173,7 +174,8 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
         // 奖品是否有效
         if (activityPrizeDO.getStatus()
                 .equalsIgnoreCase(ActivityPrizeStatusEnum.COMPLETED.name())) {
-            // throw new ServiceException(ServiceErrorCodeConstants.ACTIVITY_PRIZE_COMPLETED);
+            // throw new
+            // ServiceException(ServiceErrorCodeConstants.ACTIVITY_PRIZE_COMPLETED);
             logger.info("校验抽奖请求失败！失败原因：{}",
                     ServiceErrorCodeConstants.ACTIVITY_PRIZE_COMPLETED.getMsg());
             return false;
@@ -191,11 +193,9 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
                 param.getWinnerList()
                         .stream()
                         .map(DrawPrizeParam.Winner::getUserId)
-                        .collect(Collectors.toList())
-        );
+                        .collect(Collectors.toList()));
         PrizeDO prizeDO = prizeMapper.selectById(param.getPrizeId());
-        ActivityPrizeDO activityPrizeDO =
-                activityPrizeMapper.selectByAPId(param.getActivityId(), param.getPrizeId());
+        ActivityPrizeDO activityPrizeDO = activityPrizeMapper.selectByAPId(param.getActivityId(), param.getPrizeId());
 
         // 构造中奖者记录，保存
 
@@ -217,7 +217,8 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
         winningRecordMapper.batchInsert(winningRecordDOList);
 
         // 缓存中奖者记录
-        // 1、缓存奖品维度中奖记录(WinningRecord_activityId_prizeId, winningRecordDOList（奖品维度的中奖名单）)
+        // 1、缓存奖品维度中奖记录(WinningRecord_activityId_prizeId,
+        // winningRecordDOList（奖品维度的中奖名单）)
         cacheWinningRecords(param.getActivityId() + "_" + param.getPrizeId(),
                 winningRecordDOList,
                 WINNING_RECORDS_TIMEOUT);
@@ -321,8 +322,8 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
      * @param time
      */
     private void cacheWinningRecords(String key,
-                                     List<WinningRecordDO> winningRecordDOList,
-                                     Long time) {
+            List<WinningRecordDO> winningRecordDOList,
+            Long time) {
         String str = "";
         try {
             if (!StringUtils.hasText(key)
