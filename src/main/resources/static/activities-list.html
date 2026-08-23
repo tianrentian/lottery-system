@@ -41,6 +41,7 @@
       padding: 24px 28px;
       margin-bottom: 16px;
       transition: all 0.25s var(--ease-bounce);
+      border-radius: var(--radius-wobbly);
     }
     .activity-info {
       width: calc(100% - 160px);
@@ -66,11 +67,11 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background-color: var(--color-secondary);
-      color: #fff !important;
+      background-color: #fff;
+      color: var(--color-fg) !important;
       font-weight: 700;
       padding: 10px 20px;
-      border-radius: var(--radius-full);
+      border-radius: var(--radius-wobbly);
       border: 2px solid var(--color-fg);
       box-shadow: 3px 3px 0px var(--color-fg);
       transition: all 0.2s var(--ease-bounce);
@@ -78,7 +79,8 @@
       min-width: 140px;
     }
     .btn-draw-active:hover {
-      background-color: #DB569B;
+      background-color: var(--color-accent);
+      color: #fff !important;
       transform: translate(-2px, -2px);
       box-shadow: 5px 5px 0px var(--color-fg);
       text-decoration: none;
@@ -91,8 +93,8 @@
       color: var(--color-muted-fg) !important;
       font-weight: 600;
       padding: 10px 20px;
-      border-radius: var(--radius-full);
-      border: 2px solid var(--color-border);
+      border-radius: var(--radius-wobbly);
+      border: 2px solid var(--color-fg);
       transition: all 0.2s;
       font-size: 14px;
       min-width: 140px;

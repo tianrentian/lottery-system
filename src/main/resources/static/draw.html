@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <title>抽奖页面</title>
+    <link rel="stylesheet" href="./css/base.css">
     <style type="text/css">
         * {
             margin: 0;
@@ -19,17 +20,12 @@
 
         body {
             text-align: center;
-            background: linear-gradient(135deg, #FFFDF5 0%, #FEF08A 50%, #FCA5A5 100%);
-            /* 叠加一层点阵和圆形背景 */
-            background-image:
-                radial-gradient(circle at 15% 20%, rgba(244, 114, 182, 0.4) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.3) 0%, transparent 35%),
-                radial-gradient(rgba(0, 0, 0, 0.05) 2px, transparent 2px);
-            background-size: 100% 100%, 100% 100%, 30px 30px;
+            background: var(--color-bg);
+            background-image: radial-gradient(var(--color-muted) 1px, transparent 1px);
+            background-size: 24px 24px;
             overflow: hidden;
-            font-family: 'Outfit', 'Noto Sans SC', system-ui, sans-serif;
-            color: #1E293B;
-            /* 深色文字而非红色，更现代 */
+            font-family: var(--font-body);
+            color: var(--color-fg);
         }
 
         #container {
@@ -44,10 +40,11 @@
 
         /* 给大屏加个波浪状/几何的容器框（可选，这里用简单卡片包起来内容） */
         .glass-box {
-            background: rgba(255, 255, 255, 0.8);
-            border: 4px solid #1E293B;
-            border-radius: 32px;
-            box-shadow: 16px 16px 0px 0px #1E293B;
+            background: #FFFFFF;
+            border: 3px solid var(--color-border);
+            border-radius: var(--radius-wobbly);
+            box-shadow: 8px 8px 0 var(--color-fg);
+            transform: rotate(-.7deg);
             padding: 40px;
             margin-top: 5vh;
             width: 80%;
@@ -61,11 +58,11 @@
         #title {
             font-size: 56px;
             font-weight: 800;
-            color: #8B5CF6;
+            color: var(--color-accent);
             margin-bottom: 20px;
-            text-shadow: 4px 4px 0px #1E293B;
+            text-shadow: 3px 3px 0 var(--color-fg);
             letter-spacing: 2px;
-            -webkit-text-stroke: 2px #1E293B;
+            -webkit-text-stroke: 1px var(--color-fg);
             text-transform: uppercase;
         }
 
@@ -73,12 +70,12 @@
             font-size: 32px;
             font-weight: 700;
             margin: 10px 0 20px;
-            background: #FBBF24;
+            background: var(--color-tertiary);
             padding: 8px 32px;
             border-radius: 999px;
-            border: 3px solid #1E293B;
-            box-shadow: 6px 6px 0px #1E293B;
-            color: #1E293B;
+            border: 3px solid var(--color-border);
+            box-shadow: 4px 4px 0 var(--color-fg);
+            color: var(--color-fg);
             display: inline-block;
         }
 
@@ -87,9 +84,9 @@
             height: 240px;
             max-width: 400px;
             object-fit: cover;
-            border: 4px solid #1E293B;
-            border-radius: 24px;
-            box-shadow: 8px 8px 0px #F472B6;
+            border: 3px solid var(--color-border);
+            border-radius: var(--radius-wobbly-md);
+            box-shadow: 5px 5px 0 var(--color-accent);
             display: none;
             background-color: #fff;
         }
@@ -113,15 +110,14 @@
             align-items: center;
             justify-content: center;
             background: #fff;
-            border: 3px solid #1E293B;
+            border: 2px solid var(--color-border);
             padding: 12px 24px;
             font-size: 28px;
             font-weight: 800;
-            border-radius: 100px;
-            box-shadow: 6px 6px 0px #34D399;
-            /* 绿色阴影 */
+            border-radius: var(--radius-wobbly);
+            box-shadow: 4px 4px 0 var(--color-secondary);
             min-width: 160px;
-            color: #1E293B;
+            color: var(--color-fg);
         }
 
         /* 中奖名单样式 */
@@ -136,15 +132,15 @@
 
         .records-item div {
             background: #fff;
-            border: 3px solid #1E293B;
-            border-radius: 12px;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-wobbly-sm);
             padding: 12px 24px;
             width: 100%;
             font-size: 20px;
             font-weight: 700;
             display: flex;
             justify-content: space-between;
-            box-shadow: 4px 4px 0px #8B5CF6;
+            box-shadow: 3px 3px 0 var(--color-secondary);
         }
 
         /* 操作按钮 */
@@ -155,41 +151,39 @@
         }
 
         .opt-box .btn {
-            font-family: 'Noto Sans SC', sans-serif;
+            font-family: var(--font-body);
             font-weight: 700;
             font-size: 18px;
             padding: 12px 32px;
-            background: #8B5CF6;
-            color: #FFF;
-            border: 3px solid #1E293B;
-            border-radius: 9999px;
-            box-shadow: 6px 6px 0px #1E293B;
+            background: #fff;
+            color: var(--color-fg);
+            border: 3px solid var(--color-border);
+            border-radius: var(--radius-wobbly);
+            box-shadow: 4px 4px 0 var(--color-fg);
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .opt-box .btn:hover {
             transform: translate(-3px, -3px);
-            box-shadow: 9px 9px 0px #1E293B;
-            background: #7C3AED;
+            box-shadow: 2px 2px 0 var(--color-fg);
+            background: var(--color-accent);
         }
 
         .opt-box .btn.pre-btn {
-            background: #F472B6;
-            /* 前一个按钮粉色 */
+            background: var(--color-muted);
         }
 
         .opt-box .btn.pre-btn:hover {
-            background: #DB2777;
+            background: var(--color-secondary);
         }
 
         .opt-box .btn.copy-btn {
-            background: #34D399;
-            /* 分享按钮绿色 */
+            background: var(--color-tertiary);
         }
 
         .opt-box .btn.copy-btn:hover {
-            background: #059669;
+            background: #C69B00;
         }
 
         /* 隐藏原版滚动条 */
@@ -198,8 +192,59 @@
         }
 
         .records-item::-webkit-scrollbar-thumb {
-            background: #1E293B;
+            background: #121212;
             border-radius: 4px;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                overflow-y: auto;
+            }
+
+            #container {
+                min-width: 0;
+                min-height: 100%;
+                padding: 16px;
+            }
+
+            .glass-box {
+                width: 100%;
+                min-height: calc(100vh - 32px);
+                margin-top: 0;
+                padding: 24px 16px;
+                box-shadow: 8px 8px 0px #121212;
+            }
+
+            #title {
+                font-size: 38px;
+            }
+
+            #disc {
+                font-size: 22px;
+                padding: 8px 16px;
+            }
+
+            #image {
+                height: 180px;
+                max-width: 100%;
+            }
+
+            #list span {
+                min-width: 0;
+                width: 100%;
+                font-size: 22px;
+            }
+
+            .opt-box {
+                width: 100%;
+                gap: 12px;
+            }
+
+            .opt-box .btn {
+                flex: 1;
+                padding: 12px 8px;
+                font-size: 15px;
+            }
         }
     </style>
 </head>
@@ -281,7 +326,7 @@
                             // 分别包裹以美化展示
                             item.innerHTML = `
                             <span>${formatDate(records[i].winningTime)}</span>
-                            <span style="color:#8B5CF6;">${records[i].winnerName}</span>
+                            <span style="color:#ff4d4d;">${records[i].winnerName}</span>
                             <span>${records[i].prizeTier} - ${records[i].prizeName}</span>
                         `;
                             list.appendChild(item)
@@ -500,7 +545,7 @@
                     image.style.display = 'none';
                     document.querySelector('.opt-box').style.display = 'none';
                     var msg = document.createElement('h3');
-                    msg.style.color = '#1E293B';
+                    msg.style.color = '#121212';
                     msg.textContent = "抽奖未结束，由于您不是管理员，无权限参与抽奖。请耐心等待抽奖结束后查看中奖名单";
                     document.querySelector('.glass-box').appendChild(msg);
                 }

@@ -1,404 +1,99 @@
-/* ================================
-   Playful Geometric 设计令牌
-   ================================ */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+/* Hand-drawn activity planning board: shared tokens and Bootstrap overrides. */
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Patrick+Hand&display=swap');
 
 :root {
-  /* --- 颜色令牌 --- */
-  --color-bg:           #FFFDF5;   /* 暖奶白 */
-  --color-fg:           #1E293B;   /* 深石板 */
-  --color-muted:        #F1F5F9;   /* 浅灰 */
-  --color-muted-fg:     #64748B;   /* 中灰 */
-  --color-accent:       #8B5CF6;   /* 紫罗兰 主色 */
-  --color-accent-fg:    #FFFFFF;   /* 主色前景白 */
-  --color-secondary:    #F472B6;   /* 玫粉 */
-  --color-tertiary:     #FBBF24;   /* 琥珀黄 */
-  --color-quaternary:   #34D399;   /* 翡翠绿 */
-  --color-border:       #E2E8F0;   /* 边框浅灰 */
-  --color-card:         #FFFFFF;   /* 卡片白 */
-  --color-ring:         #8B5CF6;   /* 焦点环紫 */
-  --color-error:        #F43F5E;   /* 错误红 */
+  --color-bg: #fdfbf7;
+  --color-fg: #2d2d2d;
+  --color-muted: #e5e0d8;
+  --color-muted-fg: #716b63;
+  --color-accent: #ff4d4d;
+  --color-secondary: #2d5da1;
+  --color-tertiary: #fff9c4;
+  --color-quaternary: #ff4d4d;
+  --color-border: #2d2d2d;
+  --color-card: #ffffff;
+  --color-ring: #2d5da1;
+  --color-error: #ff4d4d;
+  --color-primary-red: #ff4d4d;
+  --color-primary-blue: #2d5da1;
+  --color-primary-yellow: #fff9c4;
 
-  /* --- 兼容旧变量（防止其他文件引用失效）--- */
-  --blue-color:         var(--color-accent);
-  --white-color:        #ffffff;
-  --border-radius:      16px;
-  --baby-blue:          #EDE9FE;   /* 浅紫替换浅蓝 */
-  --hover-blue:         #7C3AED;
-  --red-color:          var(--color-error);
-  --black-color:        var(--color-fg);
-  --placeholder-color:  #94A3B8;
-  --gray-color:         var(--color-muted-fg);
-  --bg-color:           var(--color-bg);
+  --blue-color: var(--color-secondary);
+  --white-color: #ffffff;
+  --border-radius: var(--radius-wobbly);
+  --baby-blue: #e8f0fb;
+  --hover-blue: #244a80;
+  --red-color: var(--color-error);
+  --black-color: var(--color-fg);
+  --placeholder-color: #9b958d;
+  --gray-color: var(--color-muted-fg);
+  --bg-color: var(--color-bg);
 
-  /* --- 圆角 --- */
-  --radius-sm:   8px;
-  --radius-md:   16px;
-  --radius-lg:   24px;
-  --radius-full: 9999px;
+  --radius-wobbly: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --radius-wobbly-md: 14px 255px 18px 225px / 220px 18px 240px 15px;
+  --radius-wobbly-sm: 12px 8px 14px 7px / 8px 14px 7px 12px;
+  --radius-sm: var(--radius-wobbly-sm);
+  --radius-md: var(--radius-wobbly-md);
+  --radius-lg: var(--radius-wobbly);
+  --radius-full: 50% 45% 48% 52% / 52% 48% 45% 50%;
 
-  /* --- 阴影（硬阴影，Playful 核心元素）--- */
-  --shadow-pop:      4px 4px 0px 0px var(--color-fg);
-  --shadow-pop-lg:   8px 8px 0px 0px var(--color-border);
-  --shadow-pop-pink: 8px 8px 0px 0px var(--color-secondary);
-  --shadow-btn:      4px 4px 0px 0px var(--color-fg);
-  --shadow-btn-hover:6px 6px 0px 0px var(--color-fg);
-  --shadow-focus:    4px 4px 0px 0px var(--color-accent);
-
-  /* --- 字体 --- */
-  --font-heading: 'Outfit', system-ui, sans-serif;
-  --font-body:    'Noto Sans SC', system-ui, sans-serif;
-
-  /* --- 过渡（弹性曲线）--- */
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --shadow-pop: 4px 4px 0 var(--color-fg);
+  --shadow-pop-lg: 8px 8px 0 var(--color-fg);
+  --shadow-pop-pink: 6px 6px 0 var(--color-accent);
+  --shadow-btn: 4px 4px 0 var(--color-fg);
+  --shadow-btn-hover: 2px 2px 0 var(--color-fg);
+  --shadow-focus: 0 0 0 4px rgba(45, 93, 161, .22);
+  --font-heading: 'Kalam', 'PingFang SC', 'Microsoft YaHei', cursive;
+  --font-body: 'Patrick Hand', 'Kalam', 'PingFang SC', 'Microsoft YaHei', cursive;
+  --ease-bounce: ease-out;
 }
 
-/* ================================
-   全局基础重置
-   ================================ */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
+html { font-family: var(--font-body); font-size: 17px; color: var(--color-fg); background: var(--color-bg); }
+body { margin: 0; padding: 0; background-color: var(--color-bg); }
+a, a:hover { color: var(--color-secondary); text-decoration: none; }
+button, input, select, textarea { font-family: var(--font-body); }
+h1, h2, h3, h4, h5 { font-family: var(--font-heading); font-weight: 700; color: var(--color-fg); }
 
-html {
-  font-family: var(--font-body);
-  font-size: 15px;
-  color: var(--color-fg);
-  background-color: var(--color-bg);
-  scroll-behavior: smooth;
+.btn-primary, .btn-secondary, .btn-outline-primary {
+  min-height: 44px; border: 3px solid var(--color-border); border-radius: var(--radius-wobbly);
+  box-shadow: var(--shadow-btn); font-family: var(--font-body); font-size: 18px; font-weight: 700;
+  transition: transform .12s ease-out, box-shadow .12s ease-out, background-color .12s ease-out;
 }
+.btn-primary { color: var(--color-fg); background: #fff; }
+.btn-primary:hover, .btn-primary:focus { color: #fff; background: var(--color-accent); border-color: var(--color-border); box-shadow: var(--shadow-btn-hover); transform: translate(2px, 2px) rotate(-1deg); }
+.btn-secondary, .btn-outline-primary { color: var(--color-fg); background: var(--color-muted); }
+.btn-secondary:hover, .btn-outline-primary:hover { color: #fff; background: var(--color-secondary); border-color: var(--color-border); box-shadow: var(--shadow-btn-hover); transform: translate(2px, 2px) rotate(1deg); }
+.btn-primary:active, .btn-secondary:active, .btn-outline-primary:active { box-shadow: none; transform: translate(4px, 4px); }
+:focus-visible { outline: 3px dashed var(--color-secondary); outline-offset: 3px; }
 
-body {
-  margin: 0;
-  padding: 0;
-}
+.form-group { margin-bottom: 24px; position: relative; }
+.form-group label { display: block; margin-bottom: 7px; font-family: var(--font-heading); font-size: 17px; font-weight: 700; letter-spacing: .02em; }
+.form-group label.error { color: var(--color-error); font-family: var(--font-body); font-size: 15px; line-height: 20px; margin: 0; position: absolute; top: 100%; left: 0; }
+.form-control { height: 48px; color: var(--color-fg); background: #fff; border: 2px solid var(--color-border); border-radius: var(--radius-wobbly-sm); font-size: 18px; line-height: 1.2; box-shadow: 2px 2px 0 rgba(45, 45, 45, .16); }
+.form-control:focus { color: var(--color-fg); border-color: var(--color-secondary); box-shadow: var(--shadow-focus); outline: none; }
+textarea.form-control { height: auto; min-height: 108px; line-height: 1.5; resize: vertical; }
+input::placeholder { color: var(--placeholder-color) !important; }
+input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: var(--color-accent); }
 
-a, a:hover {
-  color: var(--color-accent);
-  text-decoration: none;
-  transition: color 0.2s;
-}
+table { color: var(--color-fg); font-family: var(--font-body); font-size: 17px; }
+.table th { padding: 15px 12px !important; color: var(--color-fg); background: var(--color-tertiary); border-bottom: 2px dashed var(--color-border) !important; font-family: var(--font-heading); font-size: 16px; }
+.table td { padding: 14px 12px !important; border-top: 1px dashed var(--color-muted-fg) !important; vertical-align: middle !important; }
+.table tbody tr:hover td { background: #fff9c4; }
+.table td, .table th { border-left: 0; border-right: 0; }
 
-/* ================================
-   Bootstrap 覆盖 - 按钮（Playful 主按钮）
-   ================================ */
-.btn-primary {
-  background-color: var(--color-accent);
-  border: 2px solid var(--color-fg);
-  border-radius: var(--radius-full);
-  color: var(--color-accent-fg);
-  font-family: var(--font-body);
-  font-weight: 700;
-  box-shadow: var(--shadow-btn);
-  transition: all 0.3s var(--ease-bounce);
-  white-space: nowrap;
-  position: relative;
-  top: 0;
-  left: 0;
-}
+.pagination { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+.pagination button { min-height: 36px; padding: 4px 14px; border: 2px solid var(--color-border); border-radius: var(--radius-wobbly-sm); background: #fff; box-shadow: 3px 3px 0 var(--color-fg); cursor: pointer; font-size: 16px; }
+.pagination button:hover { background: var(--color-tertiary); transform: rotate(-1deg); }
+.pagination span { color: var(--color-muted-fg); }
+.pagination input { width: 58px; height: 34px; border: 2px solid var(--color-border); border-radius: var(--radius-wobbly-sm); text-align: center; }
 
-.btn-primary:hover {
-  background-color: #7C3AED;
-  border-color: var(--color-fg);
-  box-shadow: var(--shadow-btn-hover);
-  transform: translate(-2px, -2px);
-  color: #fff;
-}
-
-.btn-primary:active {
-  box-shadow: 2px 2px 0px 0px var(--color-fg);
-  transform: translate(2px, 2px);
-}
-
-.btn-primary:focus,
-.btn-primary.focus {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-/* 次级按钮（outline 风格）*/
-.btn-secondary,
-.btn-outline-primary {
-  background-color: transparent;
-  border: 2px solid var(--color-fg);
-  border-radius: var(--radius-full);
-  color: var(--color-fg);
-  font-weight: 600;
-  font-family: var(--font-body);
-  transition: all 0.3s var(--ease-bounce);
-  cursor: pointer;
-  padding: 6px 18px;
-}
-
-.btn-secondary:hover,
-.btn-outline-primary:hover {
-  background-color: var(--color-tertiary);
-  border-color: var(--color-fg);
-  color: var(--color-fg);
-  transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-btn);
-}
-
-/* 按钮焦点：移除默认样式 */
-.btn-outline-primary.focus,
-.btn-outline-primary:focus,
-.btn-outline-primary:not(:disabled):not(.disabled).active:focus,
-.btn-outline-primary:not(:disabled):not(.disabled):active:focus,
-.show > .btn-outline-primary.dropdown-toggle:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-:focus-visible {
-  outline: 3px solid var(--color-ring);
-  outline-offset: 2px;
-}
-
-/* ================================
-   表单组件
-   ================================ */
-.form-group {
-  margin-bottom: 24px;
-  position: relative;
-}
-
-.form-group label {
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--color-fg);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 8px;
-  display: block;
-}
-
-.form-group label.error {
-  font-weight: 400;
-  font-size: 13px;
-  color: var(--color-error);
-  line-height: 20px;
-  margin-bottom: 0;
-  position: absolute;
-  left: 0;
-  top: 100%;
-  text-transform: none;
-}
-
-.form-group input.error {
-  margin-bottom: 0;
-}
-
-/* 输入框 */
-.form-control {
-  font-weight: 400;
-  font-size: 14px;
-  font-family: var(--font-body);
-  height: 48px;
-  line-height: 48px;
-  color: var(--color-fg);
-  background-color: #fff;
-  border: 2px solid #CBD5E1;
-  border-radius: var(--radius-sm);
-  box-shadow: 4px 4px 0px transparent;
-  transition: border-color 0.2s, box-shadow 0.2s var(--ease-bounce);
-}
-
-.form-control:focus {
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-focus);
-  outline: none;
-}
-
-.form-control.is-invalid,
-.was-validated .form-control:invalid,
-.form-control.is-invalid:focus,
-.was-validated .form-control:invalid:focus {
-  border-color: var(--color-error);
-  box-shadow: 4px 4px 0px var(--color-error);
-}
-
-input::placeholder {
-  color: var(--placeholder-color) !important;
-  font-size: 14px !important;
-}
-
-textarea.form-control {
-  line-height: 1.6;
-  height: auto;
-  min-height: 100px;
-  resize: vertical;
-}
-
-/* 复选框 */
-input[type=checkbox],
-input[type=radio] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--color-accent);
-  cursor: pointer;
-}
-
-.form-check {
-  margin-bottom: 24px;
-}
-
-/* ================================
-   表格（Playful 风格）
-   ================================ */
-table {
-  color: var(--color-fg);
-  font-weight: 500;
-  font-size: 14px;
-  font-family: var(--font-body);
-}
-
-.table th {
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-muted-fg);
-  background-color: var(--color-muted);
-  border-bottom: 2px solid var(--color-border) !important;
-  padding: 16px 12px !important;
-}
-
-.table td {
-  vertical-align: middle !important;
-  border-top: 1px solid var(--color-border) !important;
-  padding: 14px 12px !important;
-  transition: background-color 0.2s;
-}
-
-.table tbody tr:hover td {
-  background-color: #FFF9E6; /* 黄色高亮行 */
-}
-
-.table td, .table th {
-  border: none;
-}
-
-.table tbody+tbody {
-  border-top: none;
-}
-
-/* ================================
-   分页组件（Playful 风格）
-   ================================ */
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-top: 20px;
-  padding-right: 8px;
-  gap: 6px;
-}
-
-.pagination button {
-  border: 2px solid var(--color-fg);
-  background-color: #fff;
-  border-radius: var(--radius-full);
-  padding: 6px 14px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font-body);
-  box-shadow: 3px 3px 0px var(--color-fg);
-  transition: all 0.25s var(--ease-bounce);
-  color: var(--color-fg);
-}
-
-.pagination button:hover {
-  background-color: var(--color-tertiary);
-  transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0px var(--color-fg);
-}
-
-.pagination span {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-muted-fg);
-}
-
-.pagination input {
-  width: 60px;
-  text-align: center;
-  height: 34px;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--color-fg);
-}
-
-/* ================================
-   通用卡片（Sticker Card）
-   ================================ */
-.geo-card {
-  background: var(--color-card);
-  border: 2px solid var(--color-fg);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-pop-lg);
-  transition: all 0.3s var(--ease-bounce);
-}
-
-.geo-card:hover {
-  transform: rotate(-1deg) scale(1.02);
-  box-shadow: var(--shadow-pop-pink);
-}
-
-/* ================================
-   标题字体
-   ================================ */
-h1, h2, h3, h4, h5 {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  color: var(--color-fg);
-}
-
-/* ================================
-   状态标签（胶囊）
-   ================================ */
-.badge-active {
-  display: inline-flex;
-  align-items: center;
-  background-color: var(--color-accent);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
-  border: 2px solid var(--color-fg);
-  box-shadow: 2px 2px 0px var(--color-fg);
-}
-
-.badge-inactive {
-  display: inline-flex;
-  align-items: center;
-  background-color: var(--color-muted);
-  color: var(--color-muted-fg);
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
-  border: 2px solid var(--color-border);
-  box-shadow: 2px 2px 0px var(--color-border);
-}
-
-/* ================================
-   几何装饰辅助类
-   ================================ */
-.geo-dot-bg {
-  /* 小圆点网格背景 */
-  background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-/* 减少动效（无障碍）*/
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+.geo-card { position: relative; background: var(--color-card); border: 2px solid var(--color-border); border-radius: var(--radius-wobbly-md); box-shadow: 5px 5px 0 rgba(45, 45, 45, .2); transition: transform .14s ease-out, box-shadow .14s ease-out; }
+.geo-card::before { content: ''; position: absolute; top: -10px; left: 38%; width: 76px; height: 19px; background: rgba(229, 224, 216, .78); transform: rotate(-4deg); }
+.geo-card:hover { transform: rotate(-1deg) translateY(-2px); box-shadow: 7px 7px 0 rgba(45, 45, 45, .24); }
+.badge-active, .badge-inactive { display: inline-flex; align-items: center; padding: 3px 12px; border: 2px solid var(--color-border); border-radius: var(--radius-wobbly-sm); font-size: 15px; font-weight: 700; }
+.badge-active { background: var(--color-accent); color: #fff; }
+.badge-inactive { background: var(--color-muted); color: var(--color-fg); }
+.geo-dot-bg { background-image: radial-gradient(var(--color-muted) 1px, transparent 1px); background-size: 24px 24px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+@media (max-width: 700px) { html { font-size: 16px; } .pagination { flex-wrap: wrap; justify-content: center; } }
