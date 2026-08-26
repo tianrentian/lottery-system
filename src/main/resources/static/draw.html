@@ -277,6 +277,10 @@
         var step = 0
         var names = null
         var state = ''
+        var isWaitingForWinnerResult = false
+        var winnerResultPollTimer = null
+        var WINNER_RESULT_POLL_INTERVAL = 300
+        var WINNER_RESULT_MAX_ATTEMPTS = 27
 
         document.addEventListener('DOMContentLoaded', function () {
             var titleDiv = document.getElementById('title');
@@ -404,7 +408,37 @@
             window.requestAnimationFrame(doBlink)
         }
 
-        function showWinnerListWithPrize(data) {
+        function renderWinnerList(data) {
+            while (list.hasChildNodes()) { list.removeChild(list.firstChild) }
+            for (var i = 0; i < data.list.length; ++i) {
+                var span = document.createElement('span')
+                span.style.boxShadow = "6px 6px 0px #FBBF24";
+                span.innerHTML = '🎉 ' + data.list[i].userName
+                list.appendChild(span)
+            }
+        }
+
+        function applyWinnerRecords(data, luckRecords) {
+            var winnerIds = luckRecords.map(function (luckRecord) { return luckRecord.winnerId; });
+            data.list = luckRecords.map(function (luckRecord) {
+                return { userId: luckRecord.winnerId, userName: luckRecord.winnerName };
+            });
+            names = names.filter(function (name) { return !winnerIds.includes(name.userId); });
+            renderWinnerList(data)
+        }
+
+        function showWinnerResultPending(data, message) {
+            disc.innerHTML = data.prizeTierName + ' - ' + data.name + ' (' + data.prizeAmount + '份)'
+            image.style.display = 'none'
+            list.style.display = 'flex'
+            list.className = ""
+            while (list.hasChildNodes()) { list.removeChild(list.firstChild) }
+            var pending = document.createElement('span')
+            pending.innerHTML = message
+            list.appendChild(pending)
+        }
+
+        function queryWinnerRecords(data, callback) {
             $.ajax({
                 url: '/winning-records/show',
                 type: 'POST',
@@ -416,27 +450,43 @@
                     if (result.code != 200) {
                         alert("查询中奖记录失败！" + result.msg);
                     } else {
-                        var luckRecords = result.data
-                        var luck = []
-                        var needRemoves = luckRecords.map(function (luckRecord) { return luckRecord.winnerId; });
-                        for (var i = 0; i < names.length; i++) {
-                            if (needRemoves.includes(names[i].userId)) {
-                                var tmp = names.splice(i, 1)
-                                luck = luck.concat(tmp)
-                                i--
-                            }
-                        }
-                        data.list = luck.map(x => x)
-                        for (var i = 0; i < data.list.length; ++i) {
-                            var span = document.createElement('span')
-                            // 新抽出的名单：黄色阴影
-                            span.style.boxShadow = "6px 6px 0px #FBBF24";
-                            span.innerHTML = '🎉 ' + data.list[i].userName
-                            list.appendChild(span)
-                        }
+                        callback(result.data)
                     }
                 }
             });
+        }
+
+        function waitForWinnerResult(data) {
+            if (winnerResultPollTimer) {
+                clearTimeout(winnerResultPollTimer)
+                winnerResultPollTimer = null
+            }
+            isWaitingForWinnerResult = true
+            showWinnerResultPending(data, '正在确认中奖结果…')
+            changeNextButtonText('正在确认结果…')
+
+            var attempts = 0
+            function poll() {
+                queryWinnerRecords(data, function (luckRecords) {
+                    if (luckRecords.length === data.prizeAmount) {
+                        isWaitingForWinnerResult = false
+                        winnerResultPollTimer = null
+                        applyWinnerRecords(data, luckRecords)
+                        changeNextButtonText('已抽完，下一步')
+                        return
+                    }
+
+                    attempts++
+                    if (attempts >= WINNER_RESULT_MAX_ATTEMPTS) {
+                        winnerResultPollTimer = null
+                        showWinnerResultPending(data, '结果处理中，请点击“重新查询结果”')
+                        changeNextButtonText('重新查询结果')
+                        return
+                    }
+                    winnerResultPollTimer = window.setTimeout(poll, WINNER_RESULT_POLL_INTERVAL)
+                })
+            }
+            poll()
         }
 
         function showList(data) {
@@ -448,14 +498,9 @@
 
             data.list = data.list || []
             if (data.list.length > 0) {
-                for (var i = 0; i < data.list.length; ++i) {
-                    var span = document.createElement('span')
-                    span.style.boxShadow = "6px 6px 0px #FBBF24";
-                    span.innerHTML = '🎉 ' + data.list[i].userName
-                    list.appendChild(span)
-                }
+                renderWinnerList(data)
             } else {
-                showWinnerListWithPrize(data)
+                waitForWinnerResult(data)
             }
         }
 
@@ -491,6 +536,10 @@
         function nextStep() {
             if (!steps || steps.length === 0) return;
             var data = steps[step]
+            if (isWaitingForWinnerResult) {
+                waitForWinnerResult(data)
+                return
+            }
             if (state == 'showPic') {
                 if (data.valid) {
                     state = 'showBlink'
@@ -506,8 +555,7 @@
                 data.valid = false
                 state = 'showList'
                 saveLuck(data, function () {
-                    showList(data)
-                    changeNextButtonText('已抽完，下一步')
+                    waitForWinnerResult(data)
                 })
             } else if (state == 'showList') {
                 if (step < (steps.length - 1)) {
@@ -528,6 +576,7 @@
         }
 
         function previousStep() {
+            if (isWaitingForWinnerResult) return
             if (step > 0) { --step }
             state = ''
             nextStep()
