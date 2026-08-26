@@ -10,6 +10,14 @@ services:
       - /data/PIC:/PIC # 映射图片上传目录到宿主机
     environment:
       - TZ=Asia/Shanghai
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST:-localhost}
+      - REDIS_PORT=${REDIS_PORT:-8888}
+      - RABBITMQ_HOST=${RABBITMQ_HOST:-localhost}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-admin}
+      - MAIL_AUTH_CODE=${MAIL_AUTH_CODE}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - DINGTALK_WEBHOOK_URL=${DINGTALK_WEBHOOK_URL}
     restart: always
 
   redis:

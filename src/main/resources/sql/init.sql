@@ -101,7 +101,7 @@ create TABLE `user`  (
 -- 插入测试账号数据
 -- 注意：13812345678 为明文手机号，123456为明文密码
 INSERT INTO `user` (`user_name`, `email`, `phone_number`, `password`, `identity`) VALUES 
-('测试账号', 'test@example.com', '8d7285bf4a04d3067ba62f026aee6811', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'ADMIN');
+('测试账号', 'test@example.com', '9e6cc4f19e70efd3cc3f5e3f4632fc2d', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'ADMIN');
 
 -- ----------------------------
 -- Table structure for winning_record

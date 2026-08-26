@@ -5,4 +5,4 @@ COPY target/*.jar app.jar
 # 创建本地图片存储路径
 RUN mkdir -p /PIC
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=test"]
+ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=prod"]
