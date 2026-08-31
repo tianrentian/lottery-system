@@ -140,5 +140,22 @@ create TABLE IF NOT EXISTS `dlx_message`  (
   INDEX `idx_status_retry`(`status` ASC, `next_retry_time` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
+-- ----------------------------
+-- Table structure for demo_visit_session（演示访问会话统计表）
+-- ----------------------------
+create TABLE IF NOT EXISTS `demo_visit_session`  (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
+  `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '首次打开时间',
+  `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '最后活动时间',
+  `session_id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '浏览器生成的匿名会话编号',
+  `stayed_60_seconds` tinyint(1) NOT NULL DEFAULT 0 comment '是否停留超过60秒',
+  `login_success` tinyint(1) NOT NULL DEFAULT 0 comment '是否登录成功',
+  `draw_success` tinyint(1) NOT NULL DEFAULT 0 comment '是否完成抽奖',
+  `error_count` int UNSIGNED NOT NULL DEFAULT 0 comment '页面异常次数',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_session_id`(`session_id` ASC) USING BTREE,
+  INDEX `idx_gmt_create`(`gmt_create` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+
 -- SET FOREIGN_KEY_CHECKS = 1;：在脚本的最后，重新开启外键约束检查。
 SET FOREIGN_KEY_CHECKS = 1;

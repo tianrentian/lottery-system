@@ -3,7 +3,6 @@ package com.example.lotterysystem.controller;
 import com.example.lotterysystem.common.errorcode.ControllerErrorCodeConstants;
 import com.example.lotterysystem.common.exception.ControllerException;
 import com.example.lotterysystem.common.pojo.CommonResult;
-import com.example.lotterysystem.common.utils.JacksonUtil;
 import com.example.lotterysystem.controller.param.ShortMessageLoginParam;
 import com.example.lotterysystem.controller.param.UserLoginParam;
 import com.example.lotterysystem.controller.param.UserPasswordLoginParam;
@@ -50,8 +49,7 @@ public class UserController {
     @RequestMapping("/register")
     public CommonResult<UserRegisterResult> userRegister(
             @Validated @RequestBody UserRegisterParam param) {
-        // 日志打印
-        logger.info("uerRegister UserRegisterParam:{}", JacksonUtil.writeValueAsString(param));
+        logger.info("收到用户注册请求，identity:{}", param.getIdentity());
         // 调用Service层服务进行访问
         UserRegisterDTO userRegisterDTO = userService.register(param);
         return CommonResult.success(convertToUserRegisterResult(userRegisterDTO));
@@ -65,7 +63,7 @@ public class UserController {
      */
     @RequestMapping("/verification-code/send")
     public CommonResult<Boolean> sendVerificationCode(String phoneNumber) throws Exception {
-        logger.info("sendVerificationCode phoneNumber:{}", phoneNumber);
+        logger.info("收到验证码发送请求");
         verificationCodeService.sendVerificationCode(phoneNumber);
         return CommonResult.success(Boolean.TRUE);
     }
@@ -73,8 +71,7 @@ public class UserController {
     @RequestMapping("/password/login")
     public CommonResult<UserLoginResult> userPasswordLogin(
             @Validated @RequestBody UserPasswordLoginParam param) {
-        logger.info("userPasswordLogin UserPasswordLoginParam:{}",
-                JacksonUtil.writeValueAsString(param));
+        logger.info("收到密码登录请求");
         UserLoginDTO userLoginDTO = userService.login(param);
         return CommonResult.success(convertToUserLoginResult(userLoginDTO));
     }
@@ -88,8 +85,7 @@ public class UserController {
     @RequestMapping("/message/login")
     public  CommonResult<UserLoginResult> shortMessageLogin(
             @Validated @RequestBody ShortMessageLoginParam param) {
-        logger.info("shortMessageLogin ShortMessageLoginParam:{}",
-                JacksonUtil.writeValueAsString(param));
+        logger.info("收到验证码登录请求");
         UserLoginDTO userLoginDTO = userService.login(param);
         return CommonResult.success(convertToUserLoginResult(userLoginDTO));
     }

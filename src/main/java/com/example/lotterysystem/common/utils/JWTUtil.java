@@ -62,7 +62,7 @@ public class JWTUtil {
             claims = jwtParserBuilder.build().parseClaimsJws(jwt).getBody();
         }catch (Exception e){
             // 签名验证失败
-            logger.error("解析令牌错误,jwt:{}", jwt, e);
+            logger.warn("解析令牌失败：{}", e.getClass().getSimpleName());
         }
         return claims;
 

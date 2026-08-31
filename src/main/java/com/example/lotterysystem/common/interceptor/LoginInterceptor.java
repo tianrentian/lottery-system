@@ -25,8 +25,8 @@ public class LoginInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         // 获取请求头
         String token = request.getHeader("user_token");
-        log.info("获取token：{}", token);
-        log.info("获取路径：{}", request.getRequestURI());
+        log.debug("认证请求，path={}，tokenPresent={}",
+                request.getRequestURI(), token != null);
         // 令牌解析
         Claims claims = JWTUtil.parseJWT(token);
         if (null == claims) {
@@ -35,7 +35,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        log.info("解析JWT令牌成功！放行");
+        log.debug("JWT令牌校验成功，放行请求：{}", request.getRequestURI());
         return true;
     }
 

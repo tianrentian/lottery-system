@@ -103,6 +103,7 @@
 <script src="/js/jquery.validate-1.19.3.min.js"></script>
 <script src="/js/bootstrap-4.5.2.min.js"></script>
 <script src="/js/toastr-2.1.4.min.js"></script>
+<script src="/js/demo-visit-tracker.js"></script>
 <script>
   // 密码登录
   $('#loginForm').validate({
@@ -129,6 +130,7 @@
           } else {
             localStorage.setItem('user_token', result.data.token);
             localStorage.setItem('user_identity', 'ADMIN');
+            window.demoVisitTracker.report('LOGIN_SUCCESS');
             location.assign('admin.html');
           }
         }
@@ -209,6 +211,7 @@
           } else {
             localStorage.setItem('user_token', result.data.token);
             localStorage.setItem('user_identity', 'ADMIN');
+            window.demoVisitTracker.report('LOGIN_SUCCESS');
             location.assign('admin.html');
           }
         }

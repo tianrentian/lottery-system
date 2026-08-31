@@ -18,6 +18,11 @@ services:
       - MAIL_AUTH_CODE=${MAIL_AUTH_CODE}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
       - DINGTALK_WEBHOOK_URL=${DINGTALK_WEBHOOK_URL}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: always
 
   redis:
@@ -25,4 +30,9 @@ services:
     container_name: lottery-redis
     ports:
       - "8888:6379"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: always

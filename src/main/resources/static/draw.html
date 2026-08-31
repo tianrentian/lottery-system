@@ -263,6 +263,7 @@
         </div>
     </div>
     <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/demo-visit-tracker.js"></script>
     <script>
         var params = new URLSearchParams(window.location.search);
         var activityId = params.get('activityId');
@@ -521,6 +522,7 @@
                     if (result.code != 200) {
                         alert("抽奖失败！" + result.msg);
                     } else {
+                        window.demoVisitTracker.report('DRAW_SUCCESS');
                         if (callback) callback();
                     }
                 },

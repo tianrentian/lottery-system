@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>演示访问统计</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 32px 18px 48px;
+      color: var(--color-fg);
+      background: var(--color-bg);
+      font-family: var(--font-body);
+    }
+
+    .insight-page {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .page-title {
+      margin: 0 0 8px;
+      font-family: var(--font-heading);
+      font-size: 30px;
+    }
+
+    .page-desc {
+      margin: 0 0 24px;
+      color: var(--color-secondary);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    button {
+      border: 2px solid var(--color-fg);
+      border-radius: var(--radius-wobbly-sm);
+      padding: 8px 15px;
+      background: var(--color-card);
+      color: var(--color-fg);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--color-fg);
+    }
+
+    button.active {
+      color: #fff;
+      background: var(--color-accent);
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .card, .panel {
+      border: 2px solid var(--color-fg);
+      border-radius: var(--radius-wobbly-sm);
+      background: var(--color-card);
+      box-shadow: 4px 4px 0 var(--color-fg);
+    }
+
+    .card {
+      padding: 18px 14px;
+      text-align: center;
+    }
+
+    .card-value {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--color-accent);
+      font-family: var(--font-heading);
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .card-label {
+      color: var(--color-secondary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .panel {
+      margin-bottom: 22px;
+      padding: 20px;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-family: var(--font-heading);
+      font-size: 19px;
+    }
+
+    .latest-times {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px 32px;
+    }
+
+    .funnel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-weight: 800;
+    }
+
+    .funnel-step {
+      padding: 10px 16px;
+      border: 2px dashed var(--color-secondary);
+      border-radius: var(--radius-wobbly-sm);
+      background: var(--color-muted);
+      text-align: center;
+    }
+
+    .funnel-arrow {
+      color: var(--color-accent);
+      font-size: 24px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px dashed var(--color-border);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--color-secondary);
+    }
+
+    .empty, .error-message {
+      padding: 18px;
+      text-align: center;
+      color: var(--color-secondary);
+    }
+
+    .privacy-note {
+      color: var(--color-secondary);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 820px) {
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .funnel { align-items: stretch; flex-direction: column; }
+      .funnel-arrow { transform: rotate(90deg); text-align: center; }
+    }
+  </style>
+</head>
+<body>
+<main class="insight-page">
+  <h1 class="page-title">演示访问统计</h1>
+  <p class="page-desc">看看抽奖项目有没有被真正打开、登录和体验。</p>
+
+  <div class="toolbar">
+    <button class="range-btn active" data-range="ALL">全部</button>
+    <button class="range-btn" data-range="LAST_7_DAYS">最近7天</button>
+    <button class="range-btn" data-range="LAST_30_DAYS">最近30天</button>
+    <button id="refreshBtn">刷新</button>
+    <span class="spacer"></span>
+    <button id="excludeBrowserBtn"></button>
+  </div>
+
+  <div id="errorMessage" class="error-message" hidden></div>
+
+  <section class="cards">
+    <div class="card"><span class="card-value" id="openedSessions">0</span><span class="card-label">项目打开</span></div>
+    <div class="card"><span class="card-value" id="engagedSessions">0</span><span class="card-label">有效体验</span></div>
+    <div class="card"><span class="card-value" id="loginSessions">0</span><span class="card-label">登录成功</span></div>
+    <div class="card"><span class="card-value" id="drawSessions">0</span><span class="card-label">完成抽奖</span></div>
+    <div class="card"><span class="card-value" id="errorSessions">0</span><span class="card-label">异常会话</span></div>
+  </section>
+
+  <section class="panel">
+    <h2>最近动态</h2>
+    <div class="latest-times">
+      <span>最近一次打开：<strong id="lastVisitTime">暂无</strong></span>
+      <span>最近一次有效体验：<strong id="lastEngagedTime">暂无</strong></span>
+      <span>累计页面异常：<strong id="totalErrors">0</strong></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>体验转化</h2>
+    <div class="funnel">
+      <div class="funnel-step">打开项目<br><span id="funnelOpened">0</span></div>
+      <div class="funnel-arrow">→</div>
+      <div class="funnel-step">有效体验<br><span id="funnelEngaged">0</span></div>
+      <div class="funnel-arrow">→</div>
+      <div class="funnel-step">登录成功<br><span id="funnelLogin">0</span></div>
+      <div class="funnel-arrow">→</div>
+      <div class="funnel-step">完成抽奖<br><span id="funnelDraw">0</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>每日趋势</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>日期</th><th>打开</th><th>有效体验</th><th>完成抽奖</th></tr></thead>
+        <tbody id="dailyTrendBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>最近20次匿名访问</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>首次打开</th><th>最后活动</th><th>超过60秒</th><th>登录</th><th>抽奖</th><th>异常</th></tr></thead>
+        <tbody id="recentSessionBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="privacy-note">仅记录匿名演示行为，不采集IP、地理位置、姓名、手机号或登录凭证。统计页本身不会计入访问数据。</p>
+</main>
+
+<script>
+  (function () {
+    var currentRange = 'ALL';
+    var DISABLED_KEY = 'lottery_demo_tracking_disabled';
+
+    function formatTime(value) {
+      if (!value) return '暂无';
+      var date = new Date(value);
+      return isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false });
+    }
+
+    function yesOrNo(value) {
+      return value ? '是' : '否';
+    }
+
+    function setText(id, value) {
+      document.getElementById(id).textContent = value == null ? 0 : value;
+    }
+
+    function render(data) {
+      setText('openedSessions', data.openedSessions);
+      setText('engagedSessions', data.engagedSessions);
+      setText('loginSessions', data.loginSessions);
+      setText('drawSessions', data.drawSessions);
+      setText('errorSessions', data.errorSessions);
+      setText('totalErrors', data.totalErrors);
+      setText('funnelOpened', data.openedSessions);
+      setText('funnelEngaged', data.engagedSessions);
+      setText('funnelLogin', data.loginSessions);
+      setText('funnelDraw', data.drawSessions);
+      document.getElementById('lastVisitTime').textContent = formatTime(data.lastVisitTime);
+      document.getElementById('lastEngagedTime').textContent = formatTime(data.lastEngagedTime);
+
+      var dailyBody = document.getElementById('dailyTrendBody');
+      var trends = data.dailyTrends || [];
+      dailyBody.innerHTML = trends.length ? trends.map(function (item) {
+        return '<tr><td>' + item.visitDate + '</td><td>' + item.openedSessions +
+          '</td><td>' + item.engagedSessions + '</td><td>' + item.drawSessions + '</td></tr>';
+      }).join('') : '<tr><td colspan="4" class="empty">当前范围暂无数据</td></tr>';
+
+      var recentBody = document.getElementById('recentSessionBody');
+      var sessions = data.recentSessions || [];
+      recentBody.innerHTML = sessions.length ? sessions.map(function (item) {
+        return '<tr><td>' + formatTime(item.firstVisitTime) + '</td><td>' +
+          formatTime(item.lastActiveTime) + '</td><td>' + yesOrNo(item.stayed60Seconds) +
+          '</td><td>' + yesOrNo(item.loginSuccess) + '</td><td>' +
+          yesOrNo(item.drawSuccess) + '</td><td>' + item.errorCount + '</td></tr>';
+      }).join('') : '<tr><td colspan="6" class="empty">当前范围暂无数据</td></tr>';
+    }
+
+    function loadStatistics() {
+      var errorMessage = document.getElementById('errorMessage');
+      errorMessage.hidden = true;
+      fetch('/demo-visits/statistics?range=' + encodeURIComponent(currentRange))
+        .then(function (response) { return response.json(); })
+        .then(function (result) {
+          if (result.code !== 200) throw new Error(result.msg || '统计查询失败');
+          render(result.data);
+        })
+        .catch(function (error) {
+          errorMessage.textContent = '统计加载失败：' + error.message;
+          errorMessage.hidden = false;
+        });
+    }
+
+    function refreshExcludeButton() {
+      var disabled = localStorage.getItem(DISABLED_KEY) === '1';
+      document.getElementById('excludeBrowserBtn').textContent =
+        disabled ? '恢复记录当前浏览器' : '排除当前浏览器';
+    }
+
+    document.querySelectorAll('.range-btn').forEach(function (button) {
+      button.addEventListener('click', function () {
+        document.querySelectorAll('.range-btn').forEach(function (item) {
+          item.classList.remove('active');
+        });
+        button.classList.add('active');
+        currentRange = button.dataset.range;
+        loadStatistics();
+      });
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', loadStatistics);
+    document.getElementById('excludeBrowserBtn').addEventListener('click', function () {
+      var disabled = localStorage.getItem(DISABLED_KEY) === '1';
+      if (disabled) {
+        localStorage.removeItem(DISABLED_KEY);
+      } else {
+        localStorage.setItem(DISABLED_KEY, '1');
+      }
+      refreshExcludeButton();
+    });
+
+    refreshExcludeButton();
+    loadStatistics();
+  })();
+</script>
+</body>
+</html>
