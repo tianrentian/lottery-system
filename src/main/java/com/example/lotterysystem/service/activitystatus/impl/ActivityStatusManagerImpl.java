@@ -53,6 +53,7 @@ public class ActivityStatusManagerImpl implements ActivityStatusManager {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void rollbackHandlerEvent(ConvertActivityStatusDTO convertActivityStatusDTO) {
         // operatorMap：活动、奖品、人员
         // 活动是否需要回滚？？ 绝对需要，原因：奖品都恢复成INIT，那么这个活动下的奖品绝对没抽完

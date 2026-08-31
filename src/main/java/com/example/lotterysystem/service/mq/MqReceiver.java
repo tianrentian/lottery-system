@@ -9,6 +9,7 @@ import com.example.lotterysystem.dao.dateobject.WinningRecordDO;
 import com.example.lotterysystem.dao.mapper.ActivityPrizeMapper;
 import com.example.lotterysystem.dao.mapper.WinningRecordMapper;
 import com.example.lotterysystem.service.DrawPrizeService;
+import com.example.lotterysystem.service.DrawReservationService;
 import com.example.lotterysystem.service.activitystatus.ActivityStatusManager;
 import com.example.lotterysystem.service.dto.ConvertActivityStatusDTO;
 import com.example.lotterysystem.service.enums.ActivityPrizeStatusEnum;
@@ -66,6 +67,8 @@ public class MqReceiver {
 
     @Autowired
     private RedissonClient redissonClient;
+    @Autowired
+    private DrawReservationService drawReservationService;
 
     @Autowired
     private org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
@@ -93,11 +96,7 @@ public class MqReceiver {
             }
             logger.info("成功获取分布式锁，开始处理抽奖。lockKey:{}", lockKey);
 
-            // 校验抽奖请求是否有效
-            // 1、有可能前端发起两个一样的抽奖请求，对于param来说也是一样的两个请求
-            // 2、param：最后一个奖项-》
-            //      处理param1：活动完成、奖品完成
-            //      处理param2: 回滚活动、奖品状态
+            // 仅处理入口已同步预占的请求；重复投递会因状态已完成而被忽略。
             if (!drawPrizeService.checkDrawPrizeParam(param)) {
                 return;
             }
@@ -192,7 +191,15 @@ public class MqReceiver {
      * @param param
      */
     private void rollbackStatus(DrawPrizeParam param) {
-        // 涉及状态的恢复，使用 ActivityStatusManager
+        ActivityPrizeDO activityPrizeDO = activityPrizeMapper.selectByAPId(param.getActivityId(), param.getPrizeId());
+        if (activityPrizeDO != null && activityPrizeDO.getStatus()
+                .equalsIgnoreCase(ActivityPrizeStatusEnum.PROCESSING.name())) {
+            // 仍处于预占阶段时，只释放本次预占，活动状态无需变更。
+            drawReservationService.release(param);
+            return;
+        }
+
+        // 最终确认阶段失败，沿用既有状态机回滚。
         ConvertActivityStatusDTO convertActivityStatusDTO = new ConvertActivityStatusDTO();
         convertActivityStatusDTO.setActivityId(param.getActivityId());
         convertActivityStatusDTO.setTargetActivityStatus(ActivityStatusEnum.RUNNING);
@@ -216,9 +223,9 @@ public class MqReceiver {
         // 结论：判断奖品状态是否扭转，就能判断出全部状态是否扭转
         ActivityPrizeDO activityPrizeDO =
                 activityPrizeMapper.selectByAPId(param.getActivityId(), param.getPrizeId());
-        // 已经扭转了，需要回滚
-        return activityPrizeDO.getStatus()
-                .equalsIgnoreCase(ActivityPrizeStatusEnum.COMPLETED.name());
+        // PROCESSING 或 COMPLETED 都代表本次请求已经改变过状态，需要回滚。
+        return activityPrizeDO != null && !activityPrizeDO.getStatus()
+                .equalsIgnoreCase(ActivityPrizeStatusEnum.INIT.name());
     }
 
     // syncExecute, sendMail, sendMessage 已经随 2.0 架构升级全部下放入专用的 AiNotificationReceiver 中进行极限并发处理，故此段旧线程池阻塞代码彻底废弃。

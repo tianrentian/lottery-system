@@ -41,9 +41,9 @@ public class ActivityOperator extends AbstractActivityOperator {
             return false;
         }
 
-        // 需要判断奖品是否全部抽完
-        // 查询 INIT 状态的奖品个数
-        int count = activityPrizeMapper.countPrize(activityId, ActivityPrizeStatusEnum.INIT.name());
+        // 只有全部奖品都已完成时，活动才能完成。PROCESSING 仍表示处理中，不能提前结束活动。
+        int count = activityPrizeMapper.countUncompletedPrize(
+                activityId, ActivityPrizeStatusEnum.COMPLETED.name());
         if (count > 0) {
             return false;
         }

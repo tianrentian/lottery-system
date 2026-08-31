@@ -1,8 +1,10 @@
 package com.example.lotterysystem.service.mq;
 
 import com.example.lotterysystem.common.utils.JacksonUtil;
+import com.example.lotterysystem.controller.param.DrawPrizeParam;
 import com.example.lotterysystem.dao.dateobject.DlxMessageDO;
 import com.example.lotterysystem.dao.mapper.DlxMessageMapper;
+import com.example.lotterysystem.service.DrawReservationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -39,6 +41,8 @@ public class DlxReceiver {
 
     @Autowired
     private DlxMessageMapper dlxMessageMapper;
+    @Autowired
+    private DrawReservationService drawReservationService;
 
     @RabbitHandler
     public void process(Map<String, String> message) {
@@ -71,9 +75,18 @@ public class DlxReceiver {
             // 方法正常返回即自动ACK
 
         } catch (Exception e) {
-            // 持久化本身失败，记录日志，消息将被丢弃
-            // 生产环境可接入告警系统（如钉钉/企微机器人通知）
-            logger.error("持久化死信消息失败！该消息将丢失，需人工介入。message:{}",
+            // 死信持久化也失败时，无法再依赖后续重试；释放本次预占，避免状态永久悬挂。
+
+            // TODO 部署前增强：释放预占成功后发送告警并终止旧消息；若释放失败，不能静默 ACK，
+            // 需要有限重试并最终进入停车队列，防止人员和奖品永久停留在 PROCESSING 状态。
+            try {
+                DrawPrizeParam param = JacksonUtil.readValue(message.get("messageData"), DrawPrizeParam.class);
+                drawReservationService.release(param);
+            } catch (Exception releaseError) {
+                logger.error("死信持久化失败后释放预占也失败。message:{}",
+                        JacksonUtil.writeValueAsString(message), releaseError);
+            }
+            logger.error("持久化死信消息失败，已尝试释放本次预占。message:{}",
                     JacksonUtil.writeValueAsString(message), e);
         }
     }

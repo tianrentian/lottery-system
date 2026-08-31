@@ -34,7 +34,7 @@ public interface ServiceErrorCodeConstants {
     // ------ 抽奖错误码 --------
     ErrorCode ACTIVITY_OR_PRIZE_IS_EMPTY = new ErrorCode(400, "抽奖活动或关联的奖品不存在");
     ErrorCode ACTIVITY_COMPLETED = new ErrorCode(401, "抽奖活动已完成，无法抽奖");
-    ErrorCode ACTIVITY_PRIZE_COMPLETED = new ErrorCode(402, "当前奖品已被抽取，无法抽奖");
+    ErrorCode DRAW_RESERVATION_INVALID = new ErrorCode(402, "抽奖预占状态无效或已失效");
     ErrorCode WINNER_PRIZE_AMOUNT_ERROR = new ErrorCode(403, "中奖人数与奖品数量不一致，无法抽奖");
     ErrorCode DRAW_PRIZE_IS_PROCESSING = new ErrorCode(404, "抽奖正在进行中，请稍后重试");
 

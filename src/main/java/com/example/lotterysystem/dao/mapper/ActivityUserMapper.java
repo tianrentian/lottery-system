@@ -44,4 +44,19 @@ public interface ActivityUserMapper {
             @Param("activityId") Long activityId,
             @Param("userIds") List<Long> userIds,
             @Param("status") String status);
+
+    @Update("<script>" +
+            " update activity_user set status = #{targetStatus}" +
+            " where activity_id = #{activityId}" +
+            " and status = #{currentStatus}" +
+            " and user_id in" +
+            " <foreach collection='userIds' item='userId' open='(' separator=',' close=')' >" +
+            " #{userId}" +
+            " </foreach>" +
+            " </script>")
+    int batchUpdateStatusIfCurrent(
+            @Param("activityId") Long activityId,
+            @Param("userIds") List<Long> userIds,
+            @Param("currentStatus") String currentStatus,
+            @Param("targetStatus") String targetStatus);
 }

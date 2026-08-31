@@ -23,12 +23,21 @@ public interface ActivityPrizeMapper {
     ActivityPrizeDO selectByAPId(@Param("activityId") Long activityId,
                                  @Param("prizeId") Long prizeId);
 
-    @Select("select count(1) from activity_prize where activity_id = #{activityId} and status = #{status}")
-    int countPrize(@Param("activityId") Long activityId,
-                   @Param("status") String status);
-
     @Update("update activity_prize set status = #{status} where activity_id = #{activityId} and prize_id = #{prizeId}")
     void updateStatus(@Param("activityId") Long activityId,
                       @Param("prizeId") Long prizeId,
                       @Param("status") String status);
+
+    @Update("update activity_prize set status = #{targetStatus}" +
+            " where activity_id = #{activityId} and prize_id = #{prizeId}" +
+            " and status = #{currentStatus}")
+    int updateStatusIfCurrent(@Param("activityId") Long activityId,
+                              @Param("prizeId") Long prizeId,
+                              @Param("currentStatus") String currentStatus,
+                              @Param("targetStatus") String targetStatus);
+
+    @Select("select count(1) from activity_prize where activity_id = #{activityId}" +
+            " and status != #{completedStatus}")
+    int countUncompletedPrize(@Param("activityId") Long activityId,
+                              @Param("completedStatus") String completedStatus);
 }

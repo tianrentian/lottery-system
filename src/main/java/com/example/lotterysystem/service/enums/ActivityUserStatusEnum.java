@@ -9,6 +9,8 @@ public enum ActivityUserStatusEnum {
 
     INIT(1, "初始化"),
 
+    PROCESSING(3, "抽奖处理中"),
+
     COMPLETED(2, "已被抽取");
 
 

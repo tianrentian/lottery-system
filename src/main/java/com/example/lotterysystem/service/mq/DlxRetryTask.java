@@ -1,8 +1,10 @@
 package com.example.lotterysystem.service.mq;
 
 import com.example.lotterysystem.common.utils.JacksonUtil;
+import com.example.lotterysystem.controller.param.DrawPrizeParam;
 import com.example.lotterysystem.dao.dateobject.DlxMessageDO;
 import com.example.lotterysystem.dao.mapper.DlxMessageMapper;
+import com.example.lotterysystem.service.DrawReservationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -37,6 +39,8 @@ public class DlxRetryTask {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private DrawReservationService drawReservationService;
 
     /**
      * 第3步 + 第4步：定时扫描异常消息表，对待处理的消息进行重试
@@ -57,8 +61,9 @@ public class DlxRetryTask {
             try {
                 // 判断是否超过最大重试次数
                 if (dlxMessage.getRetryCount() >= dlxMessage.getMaxRetry()) {
-                    // 超过重试上限，标记为FAILED，等待人工介入
+                    // 超过重试上限，标记为 FAILED 并释放未完成的预占，避免人员/奖品永久卡在 PROCESSING。
                     dlxMessageMapper.updateStatus(dlxMessage.getId(), "FAILED");
+                    releaseReservation(dlxMessage);
                     logger.error("死信消息重试次数已达上限，标记为FAILED，需人工处理！" +
                                     "messageId:{}, retryCount:{}/{}",
                             dlxMessage.getMessageId(),
@@ -88,6 +93,17 @@ public class DlxRetryTask {
             } catch (Exception e) {
                 logger.error("重试死信消息失败！messageId:{}", dlxMessage.getMessageId(), e);
             }
+        }
+    }
+
+    private void releaseReservation(DlxMessageDO dlxMessage) {
+        try {
+            Map<String, String> messageMap = JacksonUtil.readMapValue(
+                    dlxMessage.getMessageBody(), String.class, String.class);
+            DrawPrizeParam param = JacksonUtil.readValue(messageMap.get("messageData"), DrawPrizeParam.class);
+            drawReservationService.release(param);
+        } catch (Exception e) {
+            logger.error("死信消息最终失败后释放预占失败！messageId:{}", dlxMessage.getMessageId(), e);
         }
     }
 }

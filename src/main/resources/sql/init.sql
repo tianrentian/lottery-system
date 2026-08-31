@@ -3,16 +3,15 @@ SET NAMES utf8mb4;
 -- 关闭外键约束检查，这通常在创建或修改表结构时使用，以避免由于外键约束而导致的创建失败。
 SET FOREIGN_KEY_CHECKS = 0;
 
-drop database IF EXISTS `lottery_system`;
-create DATABASE `lottery_system` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+-- 本脚本允许在本地或云端重复执行：只补充缺失的库、表和测试账号，不删除已有数据。
+create DATABASE IF NOT EXISTS `lottery_system` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 USE `lottery_system`;
 
 -- ----------------------------
 -- Table structure for activity
 -- ----------------------------
-drop table IF EXISTS `activity`;
-create TABLE `activity`  (
+create TABLE IF NOT EXISTS `activity`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
@@ -29,8 +28,7 @@ create TABLE `activity`  (
 -- ----------------------------
 -- Table structure for activity_prize
 -- ----------------------------
-drop table IF EXISTS `activity_prize`;
-create TABLE `activity_prize`  (
+create TABLE IF NOT EXISTS `activity_prize`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
@@ -48,8 +46,7 @@ create TABLE `activity_prize`  (
 -- ----------------------------
 -- Table structure for activity_user
 -- ----------------------------
-drop table IF EXISTS `activity_user`;
-create TABLE `activity_user`  (
+create TABLE IF NOT EXISTS `activity_user`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
@@ -66,8 +63,7 @@ create TABLE `activity_user`  (
 -- ----------------------------
 -- Table structure for prize
 -- ----------------------------
-drop table IF EXISTS `prize`;
-create TABLE `prize`  (
+create TABLE IF NOT EXISTS `prize`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
@@ -82,8 +78,7 @@ create TABLE `prize`  (
 -- ----------------------------
 -- Table structure for user
 -- ----------------------------
-drop table IF EXISTS `user`;
-create TABLE `user`  (
+create TABLE IF NOT EXISTS `user`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
@@ -100,14 +95,13 @@ create TABLE `user`  (
 
 -- 插入测试账号数据
 -- 注意：13812345678 为明文手机号，123456为明文密码
-INSERT INTO `user` (`user_name`, `email`, `phone_number`, `password`, `identity`) VALUES 
+INSERT IGNORE INTO `user` (`user_name`, `email`, `phone_number`, `password`, `identity`) VALUES
 ('测试账号', 'test@example.com', '9e6cc4f19e70efd3cc3f5e3f4632fc2d', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'ADMIN');
 
 -- ----------------------------
 -- Table structure for winning_record
 -- ----------------------------
-drop table IF EXISTS `winning_record`;
-create TABLE `winning_record`  (
+create TABLE IF NOT EXISTS `winning_record`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
@@ -123,15 +117,14 @@ create TABLE `winning_record`  (
   `winning_time` datetime NOT NULL comment '中奖时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_id`(`id` ASC) USING BTREE,
-  UNIQUE INDEX `uk_w_a_p_id`(`winner_id` ASC, `activity_id` ASC, `prize_id` ASC) USING BTREE,
+  UNIQUE INDEX `uk_activity_winner`(`activity_id` ASC, `winner_id` ASC) USING BTREE,
   INDEX `idx_activity_id`(`activity_id` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 69 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for dlx_message（死信消息持久化表）
 -- ----------------------------
-drop table IF EXISTS `dlx_message`;
-create TABLE `dlx_message`  (
+create TABLE IF NOT EXISTS `dlx_message`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',

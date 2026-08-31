@@ -9,10 +9,12 @@ import com.example.lotterysystem.controller.param.ShowWinningRecordsParam;
 import com.example.lotterysystem.dao.dateobject.*;
 import com.example.lotterysystem.dao.mapper.*;
 import com.example.lotterysystem.service.DrawPrizeService;
+import com.example.lotterysystem.service.DrawReservationService;
 import com.example.lotterysystem.service.dto.WinningRecordDTO;
 import com.example.lotterysystem.service.enums.ActivityPrizeStatusEnum;
 import com.example.lotterysystem.service.enums.ActivityPrizeTiersEnum;
 import com.example.lotterysystem.service.enums.ActivityStatusEnum;
+import com.example.lotterysystem.service.enums.ActivityUserStatusEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.redisson.api.RLock;
@@ -60,6 +62,8 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
 
     @Autowired
     private RedissonClient redissonClient;
+    @Autowired
+    private DrawReservationService drawReservationService;
 
     @Override
     public void drawPrize(DrawPrizeParam param) {
@@ -128,13 +132,22 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
             logger.info("后端随机抽取中奖者完成，activityId={}，prizeId={}，中奖人数={}",
                     param.getActivityId(), param.getPrizeId(), winnerList.size());
 
-            // 6. 发送 MQ，后续通知/落库逻辑完全不变
+            // 6. 先同步预占人员和奖品；最终中奖确认仍在 MQ 消费端完成。
+            drawReservationService.reserve(param);
+
+            // 7. 发送 MQ，后续最终确认、中奖记录和通知逻辑保持异步。
             Map<String, String> map = new HashMap<>();
             map.put("messageId", String.valueOf(UUID.randomUUID()));
             map.put("messageData", JacksonUtil.writeValueAsString(param));
-            // 发消息 交换机、绑定的key、消息体
-            rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING, map);
-            logger.info("mq消息发送成功：map={}", JacksonUtil.writeValueAsString(map));
+            try {
+                // 发消息 交换机、绑定的key、消息体
+                rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING, map);
+                logger.info("mq消息发送成功：map={}", JacksonUtil.writeValueAsString(map));
+            } catch (RuntimeException e) {
+                // 消息未成功投递时，立即释放本次预占，避免状态悬挂。
+                drawReservationService.release(param);
+                throw e;
+            }
 
         } finally {
             // 确保锁一定会被释放，防止死锁
@@ -171,13 +184,26 @@ public class DrawPrizeServiceImpl implements DrawPrizeService {
             return false;
         }
 
-        // 奖品是否有效
-        if (activityPrizeDO.getStatus()
-                .equalsIgnoreCase(ActivityPrizeStatusEnum.COMPLETED.name())) {
-            // throw new
-            // ServiceException(ServiceErrorCodeConstants.ACTIVITY_PRIZE_COMPLETED);
-            logger.info("校验抽奖请求失败！失败原因：{}",
-                    ServiceErrorCodeConstants.ACTIVITY_PRIZE_COMPLETED.getMsg());
+        // 消费端只确认入口已预占的请求，拒绝未预占和重复投递的消息。
+        if (!activityPrizeDO.getStatus()
+                .equalsIgnoreCase(ActivityPrizeStatusEnum.PROCESSING.name())) {
+            logger.info("校验抽奖请求失败：{}，activityId={}，prizeId={}，status={}",
+                    ServiceErrorCodeConstants.DRAW_RESERVATION_INVALID.getMsg(),
+                    param.getActivityId(), param.getPrizeId(), activityPrizeDO.getStatus());
+            return false;
+        }
+
+        List<Long> winnerIds = param.getWinnerList().stream()
+                .map(DrawPrizeParam.Winner::getUserId)
+                .collect(Collectors.toList());
+        List<ActivityUserDO> reservedUsers = activityUserMapper.batchSelectByAUIds(
+                param.getActivityId(), winnerIds);
+        if (reservedUsers.size() != winnerIds.size()
+                || reservedUsers.stream().anyMatch(user -> !ActivityUserStatusEnum.PROCESSING.name()
+                .equalsIgnoreCase(user.getStatus()))) {
+            logger.info("校验抽奖请求失败：{}，activityId={}，prizeId={}",
+                    ServiceErrorCodeConstants.DRAW_RESERVATION_INVALID.getMsg(),
+                    param.getActivityId(), param.getPrizeId());
             return false;
         }
 
