@@ -1,6 +1,7 @@
 package com.example.lotterysystem.service.ai.planner;
 
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 
@@ -11,9 +12,12 @@ import java.io.Serializable;
 @Data
 public class ActivityPlanPrize implements Serializable {
 
+    @JsonProperty("prize_id")
     private Long prizeId;
 
+    @JsonProperty("prize_amount")
     private Long prizeAmount;
 
+    @JsonProperty("prize_tiers")
     private String prizeTiers;
 }

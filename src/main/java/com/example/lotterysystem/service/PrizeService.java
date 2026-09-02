@@ -6,6 +6,8 @@ import com.example.lotterysystem.service.dto.PageListDTO;
 import com.example.lotterysystem.service.dto.PrizeDTO;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 public interface PrizeService {
 
     /**
@@ -18,4 +20,9 @@ public interface PrizeService {
     Long createPrize(CreatePrizeParam param, MultipartFile picFile);
 
     PageListDTO<PrizeDTO> findPrizeList(PageParam param);
+
+    /**
+     * 查询全部奖品的规划字段，供 AI 策划服务使用。
+     */
+    List<PrizeDTO> findAllForPlanning();
 }

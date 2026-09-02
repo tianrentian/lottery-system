@@ -5,11 +5,14 @@ import com.example.lotterysystem.common.exception.ControllerException;
 import com.example.lotterysystem.common.pojo.CommonResult;
 import com.example.lotterysystem.common.utils.JacksonUtil;
 import com.example.lotterysystem.controller.param.CreateActivityParam;
+import com.example.lotterysystem.controller.param.AiActivityPlanParam;
 import com.example.lotterysystem.controller.param.PageParam;
 import com.example.lotterysystem.controller.result.CreateActivityResult;
 import com.example.lotterysystem.controller.result.FindActivityListResult;
 import com.example.lotterysystem.controller.result.GetActivityDetailResult;
 import com.example.lotterysystem.service.ActivityService;
+import com.example.lotterysystem.service.ai.planner.ActivityPlanService;
+import com.example.lotterysystem.service.ai.planner.AiPlannerResponse;
 import com.example.lotterysystem.service.dto.ActivityDTO;
 import com.example.lotterysystem.service.dto.ActivityDetailDTO;
 import com.example.lotterysystem.service.dto.CreateActivityDTO;
@@ -21,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Comparator;
@@ -33,6 +37,29 @@ public class ActivityController {
 
     @Autowired
     private ActivityService activityService;
+
+    @Autowired
+    private ActivityPlanService activityPlanService;
+
+    /**
+     * 根据管理员自然语言需求生成活动草稿，不直接创建活动。
+     */
+    @RequestMapping("/ai/activity-plan")
+    public CommonResult<AiPlannerResponse> generateActivityPlan(
+            @Validated @RequestBody AiActivityPlanParam param) {
+        logger.info("generateActivityPlan promptLength:{}", param.getPrompt().length());
+        return CommonResult.success(activityPlanService.generate(
+                param.getPrompt(), param.getHardBudget(), param.getClarificationAnswer(), param.getSessionId()));
+    }
+
+    /**
+     * 恢复30分钟内的 AI 策划草稿，不会重新调用模型。
+     */
+    @RequestMapping("/ai/activity-plan/{sessionId}")
+    public CommonResult<AiPlannerResponse> restoreActivityPlan(
+            @PathVariable String sessionId) {
+        return CommonResult.success(activityPlanService.restore(sessionId));
+    }
 
     /**
      * 创建活动

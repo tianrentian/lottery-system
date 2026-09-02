@@ -20,6 +20,9 @@ public interface PrizeMapper {
     List<PrizeDO> selectPrizeList(@Param("offset") Integer offset,
                                   @Param("pageSize") Integer pageSize);
 
+    @Select("select * from prize order by id desc")
+    List<PrizeDO> selectAll();
+
     @Select("<script>" +
             " select id from prize" +
             " where id in" +

@@ -29,6 +29,8 @@ public interface ServiceErrorCodeConstants {
     ErrorCode CACHE_ACTIVITY_ID_ERROR = new ErrorCode(307, "缓存活动的活动id有误");
     ErrorCode IDEMPOTENT_TOKEN_ERROR = new ErrorCode(308, "幂等性token错误或已过期");
     ErrorCode REPEAT_SUBMIT_ERROR = new ErrorCode(309, "请勿重复提交");
+    ErrorCode AI_PLANNER_UNAVAILABLE = new ErrorCode(310, "AI策划服务暂时不可用，请稍后重试");
+    ErrorCode AI_PLANNER_STATE_NOT_FOUND = new ErrorCode(311, "AI策划草稿已过期，请重新生成");
 
 
     // ------ 抽奖错误码 --------

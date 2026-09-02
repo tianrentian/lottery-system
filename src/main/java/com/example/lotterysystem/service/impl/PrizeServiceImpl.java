@@ -55,4 +55,18 @@ public class PrizeServiceImpl implements PrizeService {
         }
         return new PageListDTO<>(total, prizeDTOList);
     }
+
+    @Override
+    public List<PrizeDTO> findAllForPlanning() {
+        List<PrizeDTO> prizeDTOList = new ArrayList<>();
+        for (PrizeDO prizeDO : prizeMapper.selectAll()) {
+            PrizeDTO prizeDTO = new PrizeDTO();
+            prizeDTO.setPrizeId(prizeDO.getId());
+            prizeDTO.setName(prizeDO.getName());
+            prizeDTO.setPrice(prizeDO.getPrice());
+            prizeDTO.setDescription(prizeDO.getDescription());
+            prizeDTOList.add(prizeDTO);
+        }
+        return prizeDTOList;
+    }
 }

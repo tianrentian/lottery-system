@@ -1,6 +1,7 @@
 package com.example.lotterysystem.service.ai.planner;
 
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -12,11 +13,15 @@ import java.math.BigDecimal;
 @Data
 public class PrizeOption implements Serializable {
 
+    @JsonProperty("prize_id")
     private Long prizeId;
 
+    @JsonProperty("name")
     private String name;
 
+    @JsonProperty("price")
     private BigDecimal price;
 
+    @JsonProperty("description")
     private String description;
 }
