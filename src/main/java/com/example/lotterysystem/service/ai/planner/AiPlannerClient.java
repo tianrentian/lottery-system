@@ -3,6 +3,7 @@ package com.example.lotterysystem.service.ai.planner;
 import com.example.lotterysystem.common.exception.ServiceException;
 import com.example.lotterysystem.common.errorcode.ServiceErrorCodeConstants;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ public class AiPlannerClient {
     private final RestTemplate restTemplate;
     private final String baseUrl;
 
+    @Autowired
     public AiPlannerClient(
             RestTemplateBuilder restTemplateBuilder,
             @Value("${ai.planner.base-url:http://localhost:8090}") String baseUrl) {

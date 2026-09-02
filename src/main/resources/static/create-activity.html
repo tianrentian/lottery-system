@@ -52,6 +52,138 @@
         .form-btn-box button {
             min-width: 140px;
         }
+        .ai-planner-panel {
+            max-width: 620px;
+            margin: 18px auto 20px;
+            background-color: var(--color-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-wobbly-md);
+            box-shadow: 3px 3px 0 var(--color-border);
+            overflow: hidden;
+        }
+        .ai-planner-toggle {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            min-height: 52px;
+            padding: 12px 18px;
+            background-color: transparent;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            color: var(--color-fg);
+            text-align: left;
+            cursor: pointer;
+        }
+        .ai-planner-toggle:hover {
+            background-color: rgba(0, 0, 0, 0.025);
+        }
+        .ai-planner-panel.is-open .ai-planner-toggle {
+            border-bottom: 1px dashed var(--color-border);
+        }
+        .ai-planner-toggle-title {
+            font-family: var(--font-heading);
+            font-size: 17px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .ai-planner-toggle-help {
+            flex: 1;
+            margin-left: 14px;
+            color: var(--color-muted-fg);
+            font-size: 12px;
+        }
+        .ai-planner-toggle-hint {
+            margin-left: 12px;
+            color: var(--color-muted-fg);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .ai-planner-body {
+            max-height: 0;
+            margin: 0;
+            padding: 0 18px;
+            opacity: 0;
+            overflow: hidden;
+            pointer-events: none;
+            transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+        }
+        .ai-planner-panel.is-open .ai-planner-body {
+            max-height: 720px;
+            padding: 14px 18px 16px;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .ai-planner-title {
+            margin: 0 0 8px;
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--color-fg);
+        }
+        .ai-planner-help {
+            margin: 0 0 10px;
+            color: var(--color-muted-fg);
+            font-size: 12px;
+        }
+        .ai-planner-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .ai-planner-actions .btn {
+            min-width: 112px;
+        }
+        .ai-planner-status {
+            min-height: 18px;
+            margin-top: 10px;
+            color: var(--color-muted-fg);
+            font-size: 12px;
+        }
+        .ai-planner-status.is-error { color: #b42318; }
+        .ai-planner-status.is-success { color: #18794e; }
+        .ai-planner-confirm,
+        .ai-planner-clarification {
+            display: none;
+            margin-top: 14px;
+            padding: 14px;
+            background: var(--color-muted);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-wobbly-sm);
+        }
+        .ai-planner-confirm p,
+        .ai-planner-clarification p {
+            margin: 0 0 10px;
+            font-weight: 600;
+        }
+        .ai-clarification-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .ai-clarification-options button {
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 5px 12px;
+            background: #fff;
+            cursor: pointer;
+        }
+        .ai-clarification-options button:hover { border-color: var(--color-accent); }
+        @media (max-width: 760px) {
+            .container {
+                margin-left: 8px;
+                margin-right: 8px;
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            .ai-planner-panel { margin-left: 8px; margin-right: 8px; }
+            .ai-planner-toggle { align-items: flex-start; flex-wrap: wrap; }
+            .ai-planner-toggle-help { flex-basis: 100%; margin: 4px 0 0 27px; }
+            .ai-planner-toggle-hint { margin-left: auto; }
+            .form-btn-box { flex-wrap: wrap; }
+        }
         /* 模态框样式优化 */
         .modal {
             display: none;
@@ -175,6 +307,40 @@
     </form>
 </div>
 
+<!-- AI 活动策划助手：生成草稿并回填上方原有表单，不直接创建活动 -->
+<section id="aiPlannerPanel" class="ai-planner-panel" aria-labelledby="aiPlannerTitle">
+    <button id="aiPlannerToggle" type="button" class="ai-planner-toggle" aria-expanded="false" aria-controls="aiPlannerBody">
+        <span id="aiPlannerTitle" class="ai-planner-toggle-title">✨ AI 活动策划助手</span>
+        <span class="ai-planner-toggle-help">可选：输入活动想法，自动填写名称、描述和奖品</span>
+        <span id="aiPlannerToggleHint" class="ai-planner-toggle-hint">展开使用⌄</span>
+    </button>
+    <div id="aiPlannerBody" class="ai-planner-body" aria-hidden="true" inert>
+        <p class="ai-planner-help">描述活动场景即可，最多输入 300 字。人员仍需你手动圈选。</p>
+        <textarea id="aiPlannerPrompt" class="form-control" rows="2" maxlength="300"
+                  placeholder="例如：帮我策划一个热闹一点的公司年会抽奖"></textarea>
+        <div class="ai-planner-actions">
+            <button id="generateAiPlan" type="button" class="btn btn-outline-primary">生成活动方案</button>
+        </div>
+        <div id="aiPlannerStatus" class="ai-planner-status" role="status"></div>
+        <div id="aiPlannerConfirm" class="ai-planner-confirm">
+            <p>当前表单已有内容，继续生成会覆盖活动名称、描述和已选奖品，是否继续？</p>
+            <div class="ai-planner-actions">
+                <button id="confirmApplyAiPlan" type="button" class="btn btn-primary">继续生成</button>
+                <button id="cancelApplyAiPlan" type="button" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+        <div id="aiPlannerClarification" class="ai-planner-clarification">
+            <p id="aiClarificationQuestion"></p>
+            <div id="aiClarificationOptions" class="ai-clarification-options"></div>
+            <textarea id="aiClarificationAnswer" class="form-control" rows="2" maxlength="100"
+                      placeholder="也可以直接补充你的选择"></textarea>
+            <div class="ai-planner-actions">
+                <button id="submitAiClarification" type="button" class="btn btn-primary">继续策划</button>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- 奖品选择模态框 -->
 <div id="prizesModal" class="modal">
     <div class="modal-content">
@@ -218,9 +384,204 @@
     var selectedUsers = [];
     var idempotentToken = null;
     var isSubmitting = false;
+    var aiPlannerSessionId = sessionStorage.getItem('aiPlannerSessionId');
+    var pendingAiPlan = null;
+
+    function readAiField(object, snakeName, camelName) {
+        if (!object) return null;
+        return object[snakeName] !== undefined ? object[snakeName] : object[camelName];
+    }
+
+    function setAiStatus(message, type) {
+        var $status = $('#aiPlannerStatus');
+        $status.removeClass('is-error is-success');
+        if (type) $status.addClass('is-' + type);
+        $status.text(message || '');
+    }
+
+    function setAiPlannerExpanded(expanded) {
+        var $panel = $('#aiPlannerPanel');
+        var $body = $('#aiPlannerBody');
+        var collapseTimer = $body.data('collapseTimer');
+        if (collapseTimer) {
+            clearTimeout(collapseTimer);
+            $body.removeData('collapseTimer');
+        }
+        if (expanded) {
+            $body.prop('hidden', false).prop('inert', false).attr('aria-hidden', 'false');
+            $panel.addClass('is-open');
+        } else {
+            $body.prop('inert', true).attr('aria-hidden', 'true');
+            $panel.removeClass('is-open');
+            $body.data('collapseTimer', setTimeout(function() {
+                if ($('#aiPlannerToggle').attr('aria-expanded') !== 'true') {
+                    $body.prop('hidden', true);
+                }
+            }, 260));
+        }
+        $('#aiPlannerToggle').attr('aria-expanded', expanded ? 'true' : 'false');
+        $('#aiPlannerToggleHint').text(expanded ? '收起⌃' : '展开使用⌄');
+    }
+
+    function hideAiPanels() {
+        $('#aiPlannerConfirm, #aiPlannerClarification').hide();
+    }
+
+    function hasExistingAiOverwriteTarget() {
+        return $.trim($('#activityName').val()).length > 0
+            || $.trim($('#description').val()).length > 0
+            || selectedPrizes.length > 0;
+    }
+
+    function showAiClarification(response) {
+        setAiPlannerExpanded(true);
+        var question = readAiField(response, 'clarification_question', 'clarificationQuestion');
+        var options = readAiField(response, 'clarification_options', 'clarificationOptions') || [];
+        $('#aiClarificationQuestion').text(question || '请补充你的活动要求');
+        var $options = $('#aiClarificationOptions').empty();
+        options.forEach(function(option) {
+            $('<button type="button"></button>').text(option).on('click', function() {
+                $('#aiClarificationAnswer').val(option);
+            }).appendTo($options);
+        });
+        $('#aiPlannerClarification').show();
+        setAiStatus('需要你确认一个活动条件后才能继续。');
+    }
+
+    function syncPrizeModalSelection() {
+        $('.prize-item input[type="checkbox"]').prop('checked', false);
+        selectedPrizes.forEach(function(item) {
+            var prizeId = item.prizeId;
+            $('#prize-' + prizeId).prop('checked', true);
+            $('input[name="quantity-' + prizeId + '"]').val(item.prizeAmount);
+            $('select[name="level-' + prizeId + '"]').val(item.prizeTiers);
+        });
+    }
+
+    function applyAiPlan(response) {
+        var draft = response && response.draft;
+        if (!draft) {
+            setAiStatus('AI没有返回可用方案，请稍后重试。', 'error');
+            return;
+        }
+        $('#activityName').val(readAiField(draft, 'activity_name', 'activityName') || '');
+        $('#description').val(draft.description || '');
+        selectedPrizes = (draft.prizes || []).map(function(item) {
+            return {
+                prizeId: Number(readAiField(item, 'prize_id', 'prizeId')),
+                prizeAmount: Number(readAiField(item, 'prize_amount', 'prizeAmount')),
+                prizeTiers: readAiField(item, 'prize_tiers', 'prizeTiers')
+            };
+        }).filter(function(item) {
+            return item.prizeId > 0 && item.prizeAmount > 0 && item.prizeTiers;
+        });
+        $('#buttonPrizes').text(selectedPrizes.length > 0
+            ? `圈选奖品 (已选 ${selectedPrizes.length})`
+            : '1. 圈选奖品');
+        syncPrizeModalSelection();
+        pendingAiPlan = null;
+        hideAiPanels();
+        var warnings = response.warnings || [];
+        if (warnings.length > 0) {
+            setAiStatus(warnings.join('；') + ' 请检查后圈选人员。', 'error');
+        } else if (response.status === 'NEEDS_MANUAL') {
+            setAiStatus('AI方案已生成，部分配置需要人工确认。请检查后圈选人员。', 'error');
+        } else {
+            setAiStatus('AI方案已回填，请圈选人员后点击原来的“3. 立刻创建”。', 'success');
+        }
+    }
+
+    function handleAiPlanResponse(response) {
+        if (!response) {
+            setAiStatus('AI没有返回方案，请稍后重试。', 'error');
+            return;
+        }
+        if (response.session_id || response.sessionId) {
+            aiPlannerSessionId = response.session_id || response.sessionId;
+            sessionStorage.setItem('aiPlannerSessionId', aiPlannerSessionId);
+        }
+        if (response.status === 'WAITING_USER') {
+            showAiClarification(response);
+            return;
+        }
+        if (hasExistingAiOverwriteTarget()) {
+            pendingAiPlan = response;
+            $('#aiPlannerConfirm').show();
+            setAiStatus('方案已生成，确认后才会覆盖当前表单。');
+        } else {
+            applyAiPlan(response);
+        }
+    }
+
+    function requestAiPlan(clarificationAnswer) {
+        var prompt = $.trim($('#aiPlannerPrompt').val());
+        if (!prompt) {
+            setAiStatus('请先输入活动场景。', 'error');
+            return;
+        }
+        if (prompt.length > 300) {
+            setAiStatus('活动场景不能超过300字。', 'error');
+            return;
+        }
+        hideAiPanels();
+        setAiStatus('正在生成并校验活动方案，请稍候…');
+        $('#generateAiPlan, #submitAiClarification').prop('disabled', true);
+        $.ajax({
+            url: '/ai/activity-plan',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify({
+                prompt: prompt,
+                clarificationAnswer: clarificationAnswer || null,
+                sessionId: aiPlannerSessionId || null
+            }),
+            headers: { "user_token": userToken },
+            success: function(result) {
+                if (result.code !== 200) {
+                    setAiStatus(result.msg || 'AI策划失败，请稍后重试。', 'error');
+                    return;
+                }
+                handleAiPlanResponse(result.data);
+            },
+            error: function(err) {
+                if (err && err.status === 401) {
+                    alert('用户未登录!');
+                    window.parent.location.href = '/blogin.html';
+                } else {
+                    setAiStatus('AI策划服务暂时不可用，请稍后重试。', 'error');
+                }
+            },
+            complete: function() {
+                $('#generateAiPlan, #submitAiClarification').prop('disabled', false);
+            }
+        });
+    }
+
+    function restoreAiPlan() {
+        if (!aiPlannerSessionId) return;
+        $.ajax({
+            url: '/ai/activity-plan/' + encodeURIComponent(aiPlannerSessionId),
+            type: 'GET',
+            dataType: 'json',
+            headers: { "user_token": userToken },
+            success: function(result) {
+                if (result.code === 200 && result.data) {
+                    setAiPlannerExpanded(true);
+                    handleAiPlanResponse(result.data);
+                    if (result.data.status !== 'WAITING_USER') {
+                        setAiStatus('已恢复30分钟内的 AI 草稿，请检查后继续。', 'success');
+                    }
+                }
+            }
+        });
+    }
 
     // 显示隐藏模态框
-    function showPrizesModal() { $('#prizesModal').css('display', 'block'); }
+    function showPrizesModal() {
+        $('#prizesModal').css('display', 'block');
+        syncPrizeModalSelection();
+    }
     function hidePrizesModal() { $('#prizesModal').css('display', 'none'); }
     function showUsersModal() { $('#usersModal').css('display', 'block'); }
     function hideUsersModal() { $('#usersModal').css('display', 'none'); }
@@ -266,6 +627,7 @@
                     `;
                 });
                 $('#prizesContainer').html(html);
+                syncPrizeModalSelection();
             },
             error: function(err){
                 if(err!=null && err.status==401) {
@@ -401,10 +763,36 @@
         });
     });
 
+    $('#aiPlannerToggle').click(function() {
+        var expanded = $('#aiPlannerToggle').attr('aria-expanded') !== 'true';
+        setAiPlannerExpanded(expanded);
+    });
+    $('#generateAiPlan').click(function() {
+        setAiPlannerExpanded(true);
+        requestAiPlan(null);
+    });
+    $('#confirmApplyAiPlan').click(function() {
+        if (pendingAiPlan) applyAiPlan(pendingAiPlan);
+    });
+    $('#cancelApplyAiPlan').click(function() {
+        pendingAiPlan = null;
+        $('#aiPlannerConfirm').hide();
+        setAiStatus('已取消覆盖，当前表单内容保持不变。');
+    });
+    $('#submitAiClarification').click(function() {
+        var answer = $.trim($('#aiClarificationAnswer').val());
+        if (!answer) {
+            setAiStatus('请选择或补充一个答案。', 'error');
+            return;
+        }
+        requestAiPlan(answer);
+    });
+
     $(document).ready(function() {
         fetchIdempotentToken();
         fetchPrizes();
         fetchUsers();
+        restoreAiPlan();
     });
 </script>
 </body>
