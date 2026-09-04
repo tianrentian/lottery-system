@@ -18,22 +18,22 @@ public class GlobalExceptionHandler {
     public CommonResult<?> serviceException(ServiceException e) {
         // 打错误日志
         logger.error("serviceException:", e);
-        // 构造错误结果
-        return CommonResult.error(GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR.getCode(), e.getMessage());
+        // 业务异常只返回预先定义的错误码和可读提示
+        return CommonResult.error(e.getCode(), e.getMessage());
     }
 
     @ExceptionHandler(value = ControllerException.class)
     public CommonResult<?> controllerException(ControllerException e) {
         // 打错误日志
         logger.error("controllerException:", e);
-        // 构造错误结果
-        return CommonResult.error(GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR.getCode(), e.getMessage());
+        // 控制层异常只返回预先定义的错误码和可读提示
+        return CommonResult.error(e.getCode(), e.getMessage());
     }
     @ExceptionHandler(value = Exception.class)
     public CommonResult<?> Exception(Exception e) {
         // 打错误日志
         logger.error("服务异常:", e);
-        // 构造错误结果
-        return CommonResult.error(GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR.getCode(), e.getMessage());
+        // 未知异常的具体内容仅保留在服务端日志，避免泄露 SQL、类名等内部信息
+        return CommonResult.error(GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR);
     }
 }

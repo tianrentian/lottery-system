@@ -15,12 +15,12 @@ create TABLE IF NOT EXISTS `activity`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
-  `activity_name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '活动名称',
-  `description` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '活动描述',
-  `status` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '活动状态',
+  `activity_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '活动名称',
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '活动描述',
+  `status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '活动状态',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_id`(`id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 -- ENGINE = InnoDB：指定表的存储引擎为InnoDB，这是MySQL的默认存储引擎，支持事务、外键等特性。
 -- AUTO_INCREMENT = 24：为自动增长的ID字段设置起始值。
 -- ROW_FORMAT = DYNAMIC：设置行的存储格式为动态，允许行随着数据的变化而变化。
@@ -35,13 +35,13 @@ create TABLE IF NOT EXISTS `activity_prize`  (
   `activity_id` bigint NOT NULL comment '活动id',
   `prize_id` bigint NOT NULL comment '活动关联的奖品id',
   `prize_amount` bigint NOT NULL DEFAULT 1 comment '关联奖品的数量',
-  `prize_tiers` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '奖品等级',
-  `status` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '活动奖品状态',
+  `prize_tiers` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '奖品等级',
+  `status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '活动奖品状态',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_id`(`id` ASC) USING BTREE,
   UNIQUE INDEX `uk_a_p_id`(`activity_id` ASC, `prize_id` ASC) USING BTREE,
   INDEX `idx_activity_id`(`activity_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 32 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 32 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for activity_user
@@ -52,13 +52,13 @@ create TABLE IF NOT EXISTS `activity_user`  (
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
   `activity_id` bigint NOT NULL comment '活动时间',
   `user_id` bigint NOT NULL comment '圈选的用户id',
-  `user_name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '用户名',
-  `status` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '用户状态',
+  `user_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '用户名',
+  `status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '用户状态',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_id`(`id` ASC) USING BTREE,
   UNIQUE INDEX `uk_a_u_id`(`activity_id` ASC, `user_id` ASC) USING BTREE,
   INDEX `idx_activity_id`(`activity_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for prize
@@ -67,13 +67,13 @@ create TABLE IF NOT EXISTS `prize`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
-  `name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '奖品名称',
-  `description` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL comment '奖品描述',
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '奖品名称',
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL comment '奖品描述',
   `price` decimal(10, 2) NOT NULL comment '奖品价值',
-  `image_url` varchar(2048) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL comment '奖品展示图',
+  `image_url` varchar(2048) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL comment '奖品展示图',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_id`(`id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for user
@@ -82,16 +82,16 @@ create TABLE IF NOT EXISTS `user`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
-  `user_name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '用户姓名',
-  `email` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '邮箱',
-  `phone_number` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '手机号',
-  `password` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL comment '登录密码',
-  `identity` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '用户身份',
+  `user_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '用户姓名',
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '邮箱',
+  `phone_number` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '手机号',
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL comment '登录密码',
+  `identity` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '用户身份',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_id`(`id` ASC) USING BTREE,
   UNIQUE INDEX `uk_email`(`email`(30) ASC) USING BTREE,
   UNIQUE INDEX `uk_phone_number`(`phone_number`(11) ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 39 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 39 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- 插入测试账号数据
 -- 注意：13812345678 为明文手机号，123456为明文密码
@@ -106,20 +106,20 @@ create TABLE IF NOT EXISTS `winning_record`  (
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
   `activity_id` bigint NOT NULL comment '活动id',
-  `activity_name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '活动名称',
+  `activity_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '活动名称',
   `prize_id` bigint NOT NULL comment '奖品id',
-  `prize_name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '奖品名称',
-  `prize_tier` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '奖品等级',
+  `prize_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '奖品名称',
+  `prize_tier` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '奖品等级',
   `winner_id` bigint NOT NULL comment '中奖人id',
-  `winner_name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '中奖人姓名',
-  `winner_email` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '中奖人邮箱',
-  `winner_phone_number` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '中奖人电话',
+  `winner_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '中奖人姓名',
+  `winner_email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '中奖人邮箱',
+  `winner_phone_number` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '中奖人电话',
   `winning_time` datetime NOT NULL comment '中奖时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_id`(`id` ASC) USING BTREE,
   UNIQUE INDEX `uk_activity_winner`(`activity_id` ASC, `winner_id` ASC) USING BTREE,
   INDEX `idx_activity_id`(`activity_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 69 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 69 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for dlx_message（死信消息持久化表）
@@ -128,17 +128,17 @@ create TABLE IF NOT EXISTS `dlx_message`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT comment '主键',
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP comment '创建时间',
   `gmt_modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP comment '更新时间',
-  `message_id` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '消息唯一标识',
-  `message_body` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL comment '消息体（JSON格式）',
-  `error_msg` varchar(1024) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL comment '异常原因',
+  `message_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '消息唯一标识',
+  `message_body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL comment '消息体（JSON格式）',
+  `error_msg` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL comment '异常原因',
   `retry_count` int NOT NULL DEFAULT 0 comment '已重试次数',
   `max_retry` int NOT NULL DEFAULT 3 comment '最大重试次数',
-  `status` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL DEFAULT 'PENDING' comment '处理状态：PENDING-待处理, RETRYING-重试中, SUCCESS-处理成功, FAILED-人工处理',
+  `status` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'PENDING' comment '处理状态：PENDING-待处理, RETRYING-重试中, SUCCESS-处理成功, FAILED-人工处理',
   `next_retry_time` datetime NULL DEFAULT NULL comment '下次重试时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_id`(`id` ASC) USING BTREE,
   INDEX `idx_status_retry`(`status` ASC, `next_retry_time` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for demo_visit_session（演示访问会话统计表）
