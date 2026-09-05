@@ -1,0 +1,192 @@
+name: lottery-stack
+
+x-default-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 deployment/.env 中设置 MYSQL_ROOT_PASSWORD}
+      LOTTERY_DB_USERNAME: ${LOTTERY_DB_USERNAME:-lottery_user}
+      LOTTERY_DB_PASSWORD: ${LOTTERY_DB_PASSWORD:?请在 deployment/.env 中设置 LOTTERY_DB_PASSWORD}
+      GOBANG_DB_USERNAME: ${GOBANG_DB_USERNAME:-gobang_user}
+      GOBANG_DB_PASSWORD: ${GOBANG_DB_PASSWORD:?请在 deployment/.env 中设置 GOBANG_DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init/01-init-databases.sh:/docker-entrypoint-initdb.d/01-init-databases.sh:ro
+      - ../src/main/resources/sql/init.sql:/docker-entrypoint-initdb.d/02-lottery-schema.sql:ro
+      - ../../java_gobang/src/main/db.sql:/docker-entrypoint-initdb.d/03-gobang-schema.sql:ro
+      - ./mysql/init/04-lottery-demo-prizes.sql:/docker-entrypoint-initdb.d/04-lottery-demo-prizes.sql:ro
+      - ./mysql/init/05-lottery-demo-users.sql:/docker-entrypoint-initdb.d/05-lottery-demo-users.sql:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=128M
+      - --max-connections=40
+      - --performance-schema=OFF
+      - --default-time-zone=+08:00
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    mem_limit: 384m
+    logging: *default-logging
+
+  lottery-redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    restart: unless-stopped
+    mem_limit: 96m
+    logging: *default-logging
+
+  lottery-rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?请在 deployment/.env 中设置 RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+    mem_limit: 256m
+    logging: *default-logging
+
+  ai-planner:
+    build:
+      context: ../ai-planner
+      dockerfile: Dockerfile
+    environment:
+      AI_PLANNER_MODE: ${AI_PLANNER_MODE:-real}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:?请在 deployment/.env 中设置 DEEPSEEK_API_KEY}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      DEEPSEEK_MODEL_NAME: ${DEEPSEEK_MODEL_NAME:-deepseek-v4-flash}
+    expose:
+      - "8090"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    mem_limit: 256m
+    restart: unless-stopped
+    logging: *default-logging
+
+  prize-images-init:
+    image: alpine:3.20
+    command: ["sh", "-c", "cp -R /seed/. /PIC/"]
+    volumes:
+      - ./prize-images:/seed:ro
+      - prize_images:/PIC
+    restart: "no"
+    mem_limit: 32m
+    logging: *default-logging
+
+  lottery-app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MYSQL_URL: jdbc:mysql://mysql:3306/lottery_system?characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      MYSQL_USERNAME: ${LOTTERY_DB_USERNAME:-lottery_user}
+      MYSQL_PASSWORD: ${LOTTERY_DB_PASSWORD}
+      REDIS_HOST: lottery-redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: lottery-rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-admin}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      AI_PLANNER_BASE_URL: http://ai-planner:8090
+      MAIL_HOST: ${MAIL_HOST:-smtp.qq.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_AUTH_CODE: ${MAIL_AUTH_CODE:-}
+      DINGTALK_WEBHOOK_URL: ${DINGTALK_WEBHOOK_URL:-}
+      PIC_LOCAL_PATH: /PIC
+      ASYNC_CORE_POOL_SIZE: 2
+      ASYNC_MAX_POOL_SIZE: 4
+      ASYNC_QUEUE_CAPACITY: 20
+      JAVA_TOOL_OPTIONS: -Xms96m -Xmx256m -XX:MaxMetaspaceSize=96m -XX:+UseSerialGC
+      TZ: Asia/Shanghai
+    ports:
+      - "${LOTTERY_PORT:-8080}:8080"
+    volumes:
+      - prize_images:/PIC
+    depends_on:
+      mysql:
+        condition: service_healthy
+      lottery-redis:
+        condition: service_healthy
+      lottery-rabbitmq:
+        condition: service_healthy
+      ai-planner:
+        condition: service_healthy
+      prize-images-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 45s
+    mem_limit: 576m
+    restart: unless-stopped
+    stop_grace_period: 30s
+    logging: *default-logging
+
+  gobang-app:
+    build:
+      context: ../../java_gobang
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8081
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/java_gobang?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${GOBANG_DB_USERNAME:-gobang_user}
+      SPRING_DATASOURCE_PASSWORD: ${GOBANG_DB_PASSWORD}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:?请在 deployment/.env 中设置 DEEPSEEK_API_KEY}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      DEEPSEEK_MODEL_NAME: ${DEEPSEEK_MODEL_NAME:-deepseek-v4-flash}
+      JAVA_TOOL_OPTIONS: -Xms96m -Xmx256m -XX:MaxMetaspaceSize=96m -XX:+UseSerialGC
+      TZ: Asia/Shanghai
+    ports:
+      - "${GOBANG_PORT:-8081}:8081"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8081/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 45s
+    mem_limit: 512m
+    restart: unless-stopped
+    stop_grace_period: 30s
+    logging: *default-logging
+
+volumes:
+  mysql_data:
+  redis_data:
+  rabbitmq_data:
+  prize_images:

@@ -1,0 +1,7 @@
+.git
+.idea
+.env
+target
+storage
+deployment/.env
+src/test

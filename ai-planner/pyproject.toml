@@ -4,11 +4,11 @@ version = "0.1.0"
 description = "抽奖系统的 LangChain 与 LangGraph 活动策划服务"
 requires-python = ">=3.9"
 dependencies = [
-    "fastapi>=0.115,<1.0",
-    "langchain-openai>=0.3,<2.0",
-    "langgraph>=0.2,<1.0",
+    "fastapi>=0.115,<0.129",
+    "langchain-openai>=0.3,<0.4",
+    "langgraph>=0.2,<0.3",
     "pydantic>=2.7,<3.0",
-    "uvicorn[standard]>=0.30,<1.0"
+    "uvicorn[standard]>=0.30,<0.40"
 ]
 
 [project.optional-dependencies]

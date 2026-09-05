@@ -4,7 +4,7 @@ import logging
 import os
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response, status
 
 from .graph import build_planner_graph, invoke_planner
 from .llm import DeepSeekActivityPlanner
@@ -32,6 +32,19 @@ def _graph():
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "UP", "mode": os.getenv("AI_PLANNER_MODE", "mock").lower()}
+
+
+@app.get("/ready")
+def readiness(response: Response) -> dict[str, str]:
+    """只检查启动配置是否完整，不消耗 DeepSeek 调用额度。"""
+    mode = os.getenv("AI_PLANNER_MODE", "mock").strip().lower()
+    if mode not in {"mock", "real"}:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return {"status": "DOWN", "mode": mode, "reason": "AI_PLANNER_MODE 只能是 mock 或 real"}
+    if mode == "real" and not os.getenv("DEEPSEEK_API_KEY", "").strip():
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return {"status": "DOWN", "mode": mode, "reason": "未配置 DEEPSEEK_API_KEY"}
+    return {"status": "UP", "mode": mode}
 
 
 @app.post("/plan")

@@ -55,6 +55,7 @@ dump.rdb
 
 ### Local uploaded assets ###
 storage/
+deployment/backups/
 
 ### Blog ###
 防止重复提交-幂等性设计.md
