@@ -2,12 +2,16 @@ package com.example.lotterysystem.service.ai.planner;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -39,5 +43,18 @@ class AiPlannerClientTest {
         assertEquals("READY", response.getStatus());
         assertEquals("年会抽奖", response.getDraft().getActivityName());
         server.verify();
+    }
+
+    @Test
+    void usesHttp11CompatibleRequestFactoryForUvicorn() throws Exception {
+        AiPlannerClient client = new AiPlannerClient(new RestTemplateBuilder(),
+                "http://ai-planner.test");
+        Field field = AiPlannerClient.class.getDeclaredField("restTemplate");
+        field.setAccessible(true);
+        RestTemplate restTemplate = (RestTemplate) field.get(client);
+
+        assertTrue(SimpleClientHttpRequestFactory.class
+                        .isAssignableFrom(restTemplate.getRequestFactory().getClass()),
+                "Planner HTTP client must use HTTP/1.1-compatible request factory");
     }
 }

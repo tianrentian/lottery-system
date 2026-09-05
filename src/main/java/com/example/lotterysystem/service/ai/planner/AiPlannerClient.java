@@ -5,6 +5,7 @@ import com.example.lotterysystem.common.errorcode.ServiceErrorCodeConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -25,6 +26,8 @@ public class AiPlannerClient {
             RestTemplateBuilder restTemplateBuilder,
             @Value("${ai.planner.base-url:http://localhost:8090}") String baseUrl) {
         this(restTemplateBuilder
+                // Uvicorn 本地服务使用 HTTP/1.1；避免 JDK HttpClient 自动发起 h2c 升级请求
+                .requestFactory(SimpleClientHttpRequestFactory.class)
                 .setConnectTimeout(Duration.ofSeconds(2))
                 .setReadTimeout(Duration.ofSeconds(35))
                 .build(), baseUrl);
